@@ -53,7 +53,7 @@ router.post(
       res.status(200).json(supplier);
     } catch (err) {
       console.log(err.message);
-      res.status(500).send('Server Error');
+      res.status(500).json({ msg: 'Server Error' });
     }
   }
 );

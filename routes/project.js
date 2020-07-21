@@ -4,6 +4,7 @@ const Project = require('../models/project');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const customer = require('../models/customer');
 
 //POST api/project/add
 //Desc Add new project
@@ -26,14 +27,21 @@ router.post('/add', async (req, res) => {
         .status(400)
         .json({ errors: [{ msg: 'Project name already exists' }] });
     }
+    let customer = await Customer.findOne({
+      customerName: projectOwner,
+    });
+    if (!customer) {
+      return res.status(404).json({ errors: [{ msg: 'Customer not found' }] });
+    }
+
     //Initializing project object
     project = new Project({
-      projectName,
-      projectLocation,
-      projectOwner,
-      startedDate,
-      projectedEndingDate,
-      projectStatus,
+      projectName: projectName,
+      projectLocation: projectLocation,
+      projectOwner: customer._id,
+      startedDate: startedDate,
+      projectedEndingDate: projectedEndingDate,
+      projectStatus: projectStatus,
     });
     await project.save();
     res.status(200).json(project);
@@ -63,14 +71,33 @@ router.post('/add/customerSearch', async (req, res) => {
 
 //GET api/project/get
 //Desc View project info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    Project.find((err, project) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(project);
-    });
+    const project = await Project.find()
+      .populate('projectOwner', ['customerName'])
+      .sort({ _id: -1 });
+    if (!project) {
+      return res.status(404);
+    }
+    return res.json(project);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/project/:projectId
+// Desc Get project by ID
+
+router.get('/:projectId', async (req, res) => {
+  try {
+    const project = await Project.findById({
+      _id: req.params.projectId,
+    }).populate('projectOwner', ['customerName']);
+    if (!project) {
+      return res.status(404);
+    }
+    return res.json(project);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -96,24 +123,64 @@ router.use('/:projectId', (req, res, next) => {
   }
 });
 
+router.put('/:projectId', (req, res) => {
+  try {
+    const { project } = req;
+    if (req.body.customerName != null) {
+      Customer.findOne({ customerName: req.body.customerName }, function (
+        err,
+        customer
+      ) {
+        req.body.customerName = customer._id;
+        project.projectName = req.body.projectName;
+        project.projectLocation = req.body.projectLocation;
+        project.projectOwner = req.body.customerName;
+        project.startedDate = req.body.startingDate;
+        project.projectedEndingDate = req.body.endingDate;
+        project.projectStatus = req.body.status;
+        console.log(req.project);
+        req.project.save((err) => {
+          if (err) {
+            return res.send(err);
+          }
+          return res.json(project);
+        });
+      });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //PATCH
 router.patch('/:projectId', (req, res) => {
   try {
     const { project } = req;
+    console.log(project.projectOwner);
     if (req.body._id) {
       delete req.body._id;
     }
-    Object.entries(req.body).forEach((item) => {
-      const key = item[0];
-      const value = item[1];
-      project[key] = value;
-    });
-    req.project.save((err) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(project);
-    });
+    if (req.body.customerName !== null) {
+      Customer.findOne({ customerName: req.body.customerName }, function (
+        err,
+        obj
+      ) {
+        req.body.customerName = obj._id;
+        console.log(req.body.customerName);
+        Object.entries(req.body).forEach((item) => {
+          const key = item[0];
+          const value = item[1];
+          project[key] = value;
+        });
+        req.project.save((err) => {
+          if (err) {
+            return res.send(err);
+          }
+          return res.json(project);
+        });
+      });
+    }
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

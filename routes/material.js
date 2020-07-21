@@ -9,23 +9,24 @@ const router = express.Router();
 //Desc add materials
 
 router.post('/add', checkAuth, async (req, res) => {
-  const { materialType, quantity, unitCost, criticalLevel } = req.body;
+  const { materialCategory, materialName, quantity, unit, unitCost } = req.body;
   try {
     //To check whether the material type exists
     let material = await Material.findOne({
-      materialType,
+      materialName,
     });
     if (material) {
       return res
         .status(400)
-        .json({ errors: [{ msg: 'Material Type already exists' }] });
+        .json({ errors: [{ msg: 'Material Name already exists' }] });
     }
     //Initializing user object
     material = new Material({
-      materialType,
+      materialCategory,
+      materialName,
       quantity,
+      unit,
       unitCost,
-      criticalLevel,
     });
 
     await material.save();

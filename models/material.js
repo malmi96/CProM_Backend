@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const materialSchema = mongoose.Schema({
-  materialType: { type: String, required: true },
+  materialCategory: { type: String, required: true },
+  materialName: { type: String, required: true },
   quantity: { type: Number, required: true },
+  unit: { type: String, required: true },
   unitCost: { type: Number, required: true },
-  criticalLevel: { type: Number, required: true }
 });
 
 module.exports = mongoose.model('Material', materialSchema);

@@ -155,6 +155,23 @@ router.get('/customer/get', (req, res) => {
         return res.send(err);
       }
       return res.json(customers);
+    }).sort({ _id: -1 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//Get api/users/customer/:customerId
+//Desc Get user by ID
+router.get('/customer/:customerId', async (req, res) => {
+  try {
+    Customer.findById(req.params.customerId, (err, customer) => {
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.json(customer);
     });
   } catch (err) {
     console.log(err.message);
@@ -205,22 +222,33 @@ router.put('/customer/:customerId', (req, res) => {
 });
 
 //PATCH
+//PATCH
 router.patch('/customer/:customerId', (req, res) => {
   try {
     const { customer } = req;
     if (req.body._id) {
       delete req.body._id;
     }
-    Object.entries(req.body).forEach((item) => {
-      const key = item[0];
-      const value = item[1];
-      customer[key] = value;
-    });
-    req.customer.save((err) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(customer);
+    if (!req.body.password) {
+      req.body.password = '';
+    }
+    var password = req.body.password;
+    bcrypt.genSalt(10, function (err, salt) {
+      bcrypt.hash(password, salt, function (err, hash) {
+        password = hash;
+        req.body.password = password;
+        Object.entries(req.body).forEach((item) => {
+          const key = item[0];
+          const value = item[1];
+          customer[key] = value;
+        });
+        req.customer.save((err) => {
+          if (err) {
+            return res.send(err);
+          }
+          return res.json(req.customer);
+        });
+      });
     });
   } catch (err) {
     console.log(err.message);
@@ -314,6 +342,22 @@ router.get('/employee/get', (req, res) => {
         return res.send(err);
       }
       return res.json(employee);
+    }).sort({ _id: -1 });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+//Get api/users/employee/:employeeId
+//Desc Get user by ID
+router.get('/employee/:employeeId', async (req, res) => {
+  try {
+    Employee.findById(req.params.employeeId, (err, employee) => {
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.json(employee);
     });
   } catch (err) {
     console.log(err.message);
@@ -324,7 +368,7 @@ router.get('/employee/get', (req, res) => {
 //Implementing middleware
 router.use('/employee/:employeeId', (req, res, next) => {
   try {
-    Customer.findById(req.params.employeeId, (err, employee) => {
+    Employee.findById(req.params.employeeId, (err, employee) => {
       if (err) {
         res.send(err);
       }
@@ -371,16 +415,26 @@ router.patch('/employee/:employeeId', (req, res) => {
     if (req.body._id) {
       delete req.body._id;
     }
-    Object.entries(req.body).forEach((item) => {
-      const key = item[0];
-      const value = item[1];
-      employee[key] = value;
-    });
-    req.employee.save((err) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(employee);
+    if (!req.body.password) {
+      req.body.password = '';
+    }
+    var password = req.body.password;
+    bcrypt.genSalt(10, function (err, salt) {
+      bcrypt.hash(password, salt, function (err, hash) {
+        password = hash;
+        req.body.password = password;
+        Object.entries(req.body).forEach((item) => {
+          const key = item[0];
+          const value = item[1];
+          employee[key] = value;
+        });
+        req.employee.save((err) => {
+          if (err) {
+            return res.send(err);
+          }
+          return res.json(req.employee);
+        });
+      });
     });
   } catch (err) {
     console.log(err.message);

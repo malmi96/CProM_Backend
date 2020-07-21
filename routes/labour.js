@@ -8,8 +8,9 @@ const { check, validationResult } = require('express-validator');
 //Desc Add labour details
 router.post('/add', async (req, res) => {
   const {
-    labourName,
+    labourCategory,
     labourType,
+    labourName,
     labourNIC,
     labourContactNo,
     joinedDate,
@@ -27,8 +28,9 @@ router.post('/add', async (req, res) => {
     }
     //Initializing labour object
     labour = new Labour({
-      labourName,
+      labourCategory,
       labourType,
+      labourName,
       labourNIC,
       labourContactNo,
       joinedDate,
@@ -50,6 +52,23 @@ router.get('/get', (req, res) => {
       if (err) {
         return res.send(err);
       }
+      return res.json(labour);
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//Get api/labour/:labourId
+//Desc Get user by ID
+router.get('/:labourId', async (req, res) => {
+  try {
+    Labour.findById(req.params.labourId, (err, labour) => {
+      if (err) {
+        return res.send(err);
+      }
+
       return res.json(labour);
     });
   } catch (err) {

@@ -27,14 +27,27 @@ router.post('/add', async (req, res) => {
         .status(400)
         .json({ errors: [{ msg: 'Stage already exists' }] });
     }
+
+    let labour = await Labour.findOne({
+      labourName: stageSupervisor,
+    });
+    if (!labour) {
+      return res.status(404).json({ errors: [{ msg: 'Labour not found' }] });
+    }
+    let project = await Project.findOne({
+      projectName: projectName,
+    });
+    if (!project) {
+      return res.status(404).json({ errors: [{ msg: 'Project not found' }] });
+    }
     //Initializing stage object
     stage = new Stage({
-      stageName,
-      stageSupervisor,
-      stageStartedDate,
-      stageEndingDate,
-      stageStatus,
-      projectName,
+      stageName: stageName,
+      stageSupervisor: labour._id,
+      stageStartedDate: stageStartedDate,
+      stageEndingDate: stageEndingDate,
+      stageStatus: stageStatus,
+      projectName: project._id,
     });
     await stage.save();
     res.status(200).json(stage);
@@ -82,14 +95,42 @@ router.post('/add/stageSupervisor', async (req, res) => {
 
 //GET api/stage/get
 //Desc View stage info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    Stage.find((err, stage) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(stage);
-    });
+    const stage = await Stage.find()
+      .populate('stageSupervisor', ['labourName'])
+      .populate('projectName', ['projectName'])
+      .sort({ _id: -1 });
+    if (!stage) {
+      return res.status(404);
+    }
+    return res.json(stage);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//GET api/stage/projectID
+//Desc View stages of a given project
+
+router.get('/:projectId', async (req, res) => {
+  try {
+    const stages = await Stage.find({ projectName: req.params.projectId })
+      .populate('stageSupervisor', ['labourName'])
+      .populate('projectName', ['projectName']);
+    if (!stages) {
+      return res.status(404);
+    }
+    return res.json(stages);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.put('/:stageId', (req, res) => {
+  try {
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
