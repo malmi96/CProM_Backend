@@ -1,18 +1,19 @@
 const mongoose = require('mongoose');
 
 const materialAllocationSchema = mongoose.Schema({
-  materialType: {
+  materialName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Material',
-    required: true
+    required: true,
   },
   quantity: { type: Number, required: true },
   projectName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: true,
   },
-  date: { type: Date, default: Date.now }
+  unit: { type: String, required: true },
+  date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('materialAllocation', materialAllocationSchema);

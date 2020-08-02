@@ -16,6 +16,7 @@ app.use(
 );
 
 app.listen(port, () => console.log('Server Running'));
+app.use('/images', express.static('./images'));
 app.use(cors());
 
 /*app.use((req, res, next) => {
@@ -49,5 +50,6 @@ app.use('/api/materialAllocation', require('./routes/materialAllocation'));
 app.use('/api/materialConsumption', require('./routes/materialConsumption'));
 app.use('/api/image', require('./routes/image'));
 app.use('/api/otherPayments', require('./routes/otherPayments'));
+app.use('/api/machineryType', require('./routes/machineryType'));
 
 app.get('/', (req, res) => res.send('API Running'));

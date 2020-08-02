@@ -60,14 +60,31 @@ router.post(
 
 //GET api/supplier/get
 //Desc View supplier info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    Supplier.find((err, supplier) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(supplier);
+    const suppliers = await Supplier.find().sort({ _id: -1 });
+    if (!suppliers) {
+      return res.status(404);
+    }
+    return res.json(suppliers);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/supplier/:supplierId
+// Desc Get supplier by ID
+
+router.get('/:supplierId', async (req, res) => {
+  try {
+    const supplier = await Supplier.findById({
+      _id: req.params.supplierId,
     });
+    if (!supplier) {
+      return res.status(404);
+    }
+    return res.json(supplier);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

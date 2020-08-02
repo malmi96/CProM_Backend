@@ -1,23 +1,24 @@
 const mongoose = require('mongoose');
 
 const materialConsumptionSchema = mongoose.Schema({
-  materialType: {
+  materialName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Material',
-    required: true
+    required: true,
   },
-  consumedQuantity: { type: Number, required: true },
+  quantity: { type: Number, required: true },
   projectName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: true,
   },
   stageName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Stage',
-    required: true
+    required: true,
   },
-  date: { type: Date, default: Date.now }
+  unit: { type: String, required: true },
+  date: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model(

@@ -12,29 +12,36 @@ const router = express.Router();
 
 router.post('/add', async (req, res) => {
   const {
-    materialType,
-    consumedQuantity,
+    materialName,
+    quantity,
+    unit,
     projectName,
     stageName,
     date,
   } = req.body;
   try {
+    let project = await Project.findOne({ projectName: projectName });
+    let materialCheck = await Material.findOne({ materialName: materialName });
+    let stageCheck = await Stage.findOne({ stageName: stageName });
     //To check whether the material type exists
     let material = await Material.findOne({
-      materialType,
+      projectName: project._id,
+      materialName: materialCheck._id,
+      stageName: stageCheck._id,
     });
     if (material) {
       return res
         .status(400)
-        .json({ errors: [{ msg: 'Material Type already exists' }] });
+        .json({ errors: [{ msg: 'Material consumption is already added' }] });
     }
     //Initializing materialConsumption object
     materialConsumption = new MaterialConsumption({
-      materialType,
-      consumedQuantity,
-      projectName,
-      stageName,
-      date,
+      materialName: materialCheck._id,
+      quantity: quantity,
+      unit: unit,
+      projectName: project._id,
+      stageName: stageCheck._id,
+      date: date,
     });
 
     await materialConsumption.save();

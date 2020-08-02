@@ -39,14 +39,47 @@ router.post('/add', checkAuth, async (req, res) => {
 
 //GET api/material/get
 //Desc View material info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    Material.find((err, material) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(material);
+    const materials = await Material.find().sort({ _id: -1 });
+    if (!materials) {
+      return res.status(404);
+    }
+    return res.json(materials);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//GET api/material/materialID
+//Desc View stages of a given project
+
+router.get('/:materialId', async (req, res) => {
+  try {
+    const material = await Material.findById({ _id: req.params.materialId });
+    if (!material) {
+      return res.status(404);
+    }
+    return res.json(material);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//GET api/material/materialName
+//Desc get unit names
+
+router.get('/materialfind/:materialName', async (req, res) => {
+  try {
+    const material = await Material.findOne({
+      materialName: req.params.materialName,
     });
+    if (!material) {
+      return res.status(404);
+    }
+    return res.json(material.unit);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -100,6 +133,9 @@ router.patch('/:materialId', (req, res) => {
     const { material } = req;
     if (req.body._id) {
       delete req.body._id;
+    }
+    if (req.body.materialName === '') {
+      delete req.body.materialName;
     }
     Object.entries(req.body).forEach((item) => {
       const key = item[0];

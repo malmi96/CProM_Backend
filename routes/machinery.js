@@ -1,5 +1,6 @@
 const express = require('express');
 const Machinery = require('../models/machinery');
+const MachineryType = require('../models/machineryTypes');
 const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
@@ -8,8 +9,11 @@ const { check, validationResult } = require('express-validator');
 //POST api/machinery/add
 //Desc Add machinery details
 router.post('/add', async (req, res) => {
-  const { machineryName, machineryType, machineryCondition } = req.body;
+  const { machineryName, machineryType, machineryCondition, date } = req.body;
   try {
+    let machineryTypeCheck = await MachineryType.findOne({
+      machineryType: machineryType,
+    });
     //To check whether the machineryName exists
     let machinery = await Machinery.findOne({
       machineryName,
@@ -21,9 +25,10 @@ router.post('/add', async (req, res) => {
     }
     //Initializing machinery object
     machinery = new Machinery({
-      machineryName,
-      machineryType,
-      machineryCondition,
+      machineryName: machineryName,
+      machineryType: machineryTypeCheck._id,
+      machineryCondition: machineryCondition,
+      date: date,
     });
 
     await machinery.save();
@@ -36,14 +41,30 @@ router.post('/add', async (req, res) => {
 
 //GET api/machinery/get
 //Desc View machinery info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    Machinery.find((err, machinery) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(machinery);
-    });
+    const machinery = await Machinery.find().populate('machineryType', [
+      'machineryType',
+    ]);
+    return res.json(machinery);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//GET api/machinery/machineryID
+//Desc View machinery by ID
+
+router.get('/:machineryId', async (req, res) => {
+  try {
+    const machinery = await Machinery.findById({
+      _id: req.params.machineryId,
+    }).populate('machineryType', ['machineryType']);
+    if (!machinery) {
+      return res.status(404);
+    }
+    return res.json(machinery);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -62,6 +83,31 @@ router.use('/:machineryId', (req, res, next) => {
         return next();
       }
       return res.sendStatus(404);
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.put('/:machineryId', (req, res) => {
+  try {
+    const { machinery } = req;
+    MachineryType.findOne({ machineryType: req.body.machineryType }, function (
+      err,
+      machineryType
+    ) {
+      machinery.machineryName = req.body.machineryName;
+      machinery.machineryType = machineryType._id;
+      machinery.machineryCondition = req.body.machineryCondition;
+      machinery.date = req.body.date;
+
+      req.machinery.save((err) => {
+        if (err) {
+          return res.send(err);
+        }
+        return res.json(machinery);
+      });
     });
   } catch (err) {
     console.log(err.message);

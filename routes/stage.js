@@ -129,8 +129,21 @@ router.get('/:projectId', async (req, res) => {
   }
 });
 
-router.put('/:stageId', (req, res) => {
+//GET api/stage/view/projectName
+//Desc View stages of a given project
+
+router.get('/view/:projectName', async (req, res) => {
   try {
+    const project = await Project.findOne({
+      projectName: req.params.projectName,
+    });
+    const stages = await Stage.find({ projectName: project._id })
+      .populate('stageSupervisor', ['labourName'])
+      .populate('projectName', ['projectName']);
+    if (!stages) {
+      return res.status(404);
+    }
+    return res.json(stages);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -149,6 +162,32 @@ router.use('/:stageId', (req, res, next) => {
         return next();
       }
       return res.sendStatus(404);
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.put('/:stageId', async (req, res) => {
+  try {
+    const { stage } = req;
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const labour = await Labour.findOne({ labourName: req.body.labourName });
+    stage.projectName = project._id;
+    stage.stageSupervisor = labour._id;
+    stage.stageName = req.body.stageName;
+    stage.stageStartedDate = req.body.startingDate;
+    stage.stageEndingDate = req.body.endingDate;
+    stage.stageStatus = req.body.status;
+
+    req.stage.save((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(stage);
     });
   } catch (err) {
     console.log(err.message);

@@ -10,25 +10,28 @@ const router = express.Router();
 //Desc allocate materials to each project
 
 router.post('/add', async (req, res) => {
-  const { materialType, quantity, projectName, date } = req.body;
+  const { materialName, quantity, unit, projectName, date } = req.body;
   try {
+    let project = await Project.findOne({ projectName: projectName });
+    let materialCheck = await Material.findOne({ materialName: materialName });
     //To check whether the material type exists
-    let material = await Material.findOne({
-      materialType,
+    let material = await MaterialAllocation.findOne({
+      materialName: materialCheck._id,
+      projectName: project._id,
     });
     if (material) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: 'Material Type already exists' }] });
+      return res.status(400).json({
+        errors: [{ msg: 'This material is already allocated to this project' }],
+      });
     }
     //Initializing materialAllocation object
     materialAllocation = new MaterialAllocation({
-      materialType,
-      quantity,
-      projectName,
-      date,
+      materialName: materialCheck._id,
+      quantity: quantity,
+      projectName: project._id,
+      unit: unit,
+      date: date,
     });
-
     await materialAllocation.save();
     res.status(200).json(materialAllocation);
   } catch (err) {
