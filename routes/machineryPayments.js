@@ -10,15 +10,30 @@ const { check, validationResult } = require('express-validator');
 //POST api/machineryPayments
 //Desc add machinery Payments
 router.post('/add', async (req, res) => {
-  const { machineryName, supplierName, date, amount, paymentType } = req.body;
+  const {
+    machineryName,
+    supplierName,
+    date,
+    amount,
+    paymentType,
+    description,
+  } = req.body;
   try {
+    const machinery = await Machinery.findOne({
+      machineryName: machineryName,
+    });
+    const supplier = await Supplier.findOne({
+      supplierName: supplierName,
+    });
+
     //Initializing machineryPayment object
     machineryPayment = new MachineryPayment({
-      machineryName,
-      supplierName,
-      date,
-      amount,
-      paymentType,
+      machineryName: machinery._id,
+      supplierName: supplier._id,
+      date: date,
+      amount: amount,
+      paymentType: paymentType,
+      description: description,
     });
 
     await machineryPayment.save();
@@ -67,14 +82,36 @@ router.post('/add/supplierName', async (req, res) => {
 
 //GET api/machineryPayments/get
 //Desc View machineryPayments info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    MachineryPayment.find((err, machineryPayments) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(machineryPayments);
-    });
+    const machineryPayment = await MachineryPayment.find()
+      .populate('machineryName', ['machineryName'])
+      .populate('supplierName', ['supplierName'])
+      .sort({ _id: -1 });
+    if (!machineryPayment) {
+      return res.status(404);
+    }
+    return res.json(machineryPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/machineryPayments/get/:id
+// Desc Get machinery payment by ID
+
+router.get('/get/:id', async (req, res) => {
+  try {
+    const machineryPayment = await MachineryPayment.findById({
+      _id: req.params.id,
+    })
+      .populate('machineryName', ['machineryName'])
+      .populate('supplierName', ['supplierName']);
+    if (!machineryPayment) {
+      return res.status(404);
+    }
+    return res.json(machineryPayment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -97,6 +134,34 @@ router.use('/:machineryPaymentsId', (req, res, next) => {
         return res.sendStatus(404);
       }
     );
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//PUT
+router.put('/:machineryPaymentsId', async (req, res) => {
+  try {
+    const { machineryPayments } = req;
+    const machinery = await Machinery.findOne({
+      machineryName: req.body.machineryName,
+    });
+    const supplier = await Supplier.findOne({
+      supplierName: req.body.supplierName,
+    });
+    machineryPayments.machineryName = machinery._id;
+    machineryPayments.supplierName = supplier._id;
+    machineryPayments.date = req.body.date;
+    machineryPayments.paymentType = req.body.paymentType;
+    machineryPayments.amount = req.body.amount;
+    machineryPayments.description = req.body.description;
+    req.machineryPayments.save((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(machineryPayments);
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

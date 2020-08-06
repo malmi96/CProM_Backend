@@ -7,6 +7,7 @@ const Stage = require('../models/stage');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const { findOne } = require('../models/project');
 
 //POST api/labourwages
 //Desc add labour wages
@@ -14,20 +15,31 @@ router.post('/add', async (req, res) => {
   const {
     paymentType,
     labour,
+    nic,
     projectName,
     stageName,
     paymentDate,
     amount,
+    description,
   } = req.body;
   try {
+    const labourName = await Labour.findOne({
+      labourName: labour,
+    });
+    const project = await Project.findOne({
+      projectName: projectName,
+    });
+
     //Initializing labourWages object
     labourwages = new LabourWages({
-      paymentType,
-      labour,
-      projectName,
-      stageName,
-      paymentDate,
-      amount,
+      paymentType: paymentType,
+      labour: labourName._id,
+      nic: nic,
+      projectName: project._id,
+      stageName: stageName,
+      paymentDate: paymentDate,
+      amount: amount,
+      description: description,
     });
 
     await labourwages.save();
@@ -94,14 +106,38 @@ router.post('/add/stageName', async (req, res) => {
 
 //GET api/labourWages/get
 //Desc View labourWages info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    LabourWages.find((err, labourWages) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(labourWages);
-    });
+    const labourPayment = await LabourWages.find()
+      .populate('labour', ['labourName'])
+      .populate('projectName', ['projectName'])
+      .populate('stageName', ['stageName'])
+      .sort({ _id: -1 });
+    if (!labourPayment) {
+      return res.status(404);
+    }
+    return res.json(labourPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/labourWages/get/:id
+// Desc Get labourWages by ID
+
+router.get('/get/:id', async (req, res) => {
+  try {
+    const labourPayment = await LabourWages.findById({
+      _id: req.params.id,
+    })
+      .populate('labour', ['labourName'])
+      .populate('projectName', ['projectName'])
+      .populate('stageName', ['stageName']);
+    if (!labourPayment) {
+      return res.status(404);
+    }
+    return res.json(labourPayment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -109,18 +145,42 @@ router.get('/get', (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:labourWagesId', (req, res, next) => {
+router.use('/:labourWagesId', async (req, res, next) => {
   try {
-    LabourWages.findById(req.params.labourWagesId, (err, labourWages) => {
-      if (err) {
-        res.send(err);
-      }
-      if (labourWages) {
-        req.labourWages = labourWages;
-        return next();
-      }
-      return res.sendStatus(404);
+    const labourWages = await LabourWages.findById({
+      _id: req.params.labourWagesId,
     });
+    if (!labourWages) {
+      return res.status(404).send('no labour');
+    }
+    req.labourWages = labourWages;
+    return next();
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//PUT
+router.put('/:labourWagesId', async (req, res) => {
+  try {
+    const { labourWages } = req;
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const labour = await Labour.findOne({ labourName: req.body.labour });
+    const stage = await Stage.findOne({ stageName: req.body.stageName });
+    labourWages.labour = labour._id;
+    labourWages.projectName = project._id;
+    labourWages.nic = req.body.nic;
+    labourWages.paymentDate = req.body.paymentDate;
+    labourWages.paymentType = req.body.paymentType;
+    labourWages.amount = req.body.amount;
+    labourWages.stageName = stage._id;
+    labourWages.description = req.body.description;
+
+    await req.labourWages.save();
+    return res.json(labourWages);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

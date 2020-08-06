@@ -1,19 +1,9 @@
 const mongoose = require('mongoose');
 
 const materialPaymentSchema = mongoose.Schema({
-  materialType: {
+  materialName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Material',
-    required: true,
-  },
-  projectName: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: true,
-  },
-  stageName: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stage',
     required: true,
   },
   supplierName: {
@@ -22,7 +12,7 @@ const materialPaymentSchema = mongoose.Schema({
   },
   date: { type: Date, default: Date.now },
   amount: { type: Number, required: true },
-  quantityBought: { type: Number, required: true },
+  description: { type: String },
 });
 
 module.exports = mongoose.model('MaterialPayment', materialPaymentSchema);

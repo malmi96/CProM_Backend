@@ -104,6 +104,24 @@ router.get('/:projectId', async (req, res) => {
   }
 });
 
+// GET api/project/view/:projectName
+// Desc Get Customer Name from project Name
+
+router.get('/view/:projectName', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.params.projectName,
+    }).populate('projectOwner', ['customerName']);
+    if (!project) {
+      return res.status(404);
+    }
+    return res.json(project);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:projectId', (req, res, next) => {
   try {
@@ -157,7 +175,6 @@ router.put('/:projectId', (req, res) => {
 router.patch('/:projectId', (req, res) => {
   try {
     const { project } = req;
-    console.log(project.projectOwner);
     if (req.body._id) {
       delete req.body._id;
     }

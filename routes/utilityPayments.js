@@ -10,15 +10,26 @@ const { check, validationResult } = require('express-validator');
 //POST api/utilityPayments
 //Desc add utility Payments
 router.post('/add', async (req, res) => {
-  const { billType, projectName, stageName, billDate, amount } = req.body;
+  const {
+    paymentType,
+    projectName,
+    stageName,
+    paymentDate,
+    amount,
+    description,
+  } = req.body;
   try {
+    const project = await Project.findOne({
+      projectName: projectName,
+    });
     //Initializing utilityPayment object
     utilityPayment = new UtilityPayment({
-      billType,
-      projectName,
-      stageName,
-      billDate,
-      amount,
+      paymentType: paymentType,
+      projectName: project._id,
+      stageName: stageName,
+      paymentDate: paymentDate,
+      amount: amount,
+      description: description,
     });
 
     await utilityPayment.save();
@@ -67,14 +78,36 @@ router.post('/add/stageName', async (req, res) => {
 
 //GET api/utilityPayments/get
 //Desc View utilityPayments info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    UtilityPayment.find((err, utilityPayments) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(utilityPayments);
-    });
+    const utilityPayment = await UtilityPayment.find()
+      .populate('projectName', ['projectName'])
+      .populate('stageName', ['stageName'])
+      .sort({ _id: -1 });
+    if (!utilityPayment) {
+      return res.status(404);
+    }
+    return res.json(utilityPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/utilityPayments/get/:id
+// Desc Get utility payment by ID
+
+router.get('/get/:id', async (req, res) => {
+  try {
+    const utilityPayment = await UtilityPayment.findById({
+      _id: req.params.id,
+    })
+      .populate('projectName', ['projectName'])
+      .populate('stageName', ['stageName']);
+    if (!utilityPayment) {
+      return res.status(404);
+    }
+    return res.json(utilityPayment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -97,6 +130,34 @@ router.use('/:utilityPaymentsId', (req, res, next) => {
         return res.sendStatus(404);
       }
     );
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//PUT
+router.put('/:utilityPaymentsId', async (req, res) => {
+  try {
+    const { utilityPayments } = req;
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const stage = await Stage.findOne({
+      stageName: req.body.stageName,
+    });
+    utilityPayments.projectName = project._id;
+    utilityPayments.paymentDate = req.body.paymentDate;
+    utilityPayments.paymentType = req.body.paymentType;
+    utilityPayments.amount = req.body.amount;
+    utilityPayments.stageName = stage._id;
+    utilityPayments.description = req.body.description;
+    req.utilityPayments.save((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(utilityPayments);
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

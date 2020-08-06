@@ -12,25 +12,21 @@ const { check, validationResult } = require('express-validator');
 //POST api/materialPayments
 //Desc add material Payments
 router.post('/add', async (req, res) => {
-  const {
-    materialName,
-    projectName,
-    stageName,
-    supplierName,
-    date,
-    amount,
-    quantityBought,
-  } = req.body;
+  const { materialName, supplierName, date, amount, description } = req.body;
   try {
+    const material = await Material.findOne({
+      materialName: materialName,
+    });
+    const supplier = await Supplier.findOne({
+      supplierName: supplierName,
+    });
     //Initializing materialPayment object
     materialPayment = new MaterialPayment({
-      materialName,
-      projectName,
-      stageName,
-      supplierName,
-      date,
-      amount,
-      quantityBought,
+      materialName: material._id,
+      supplierName: supplier._id,
+      date: date,
+      amount: amount,
+      description: description,
     });
 
     await materialPayment.save();
@@ -115,14 +111,36 @@ router.post('/add/supplierName', async (req, res) => {
 
 //GET api/materialPayments/get
 //Desc View materialPayments info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    MaterialPayment.find((err, materialPayments) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(materialPayments);
-    });
+    const materialPayment = await MaterialPayment.find()
+      .populate('materialName', ['materialName'])
+      .populate('supplierName', ['supplierName'])
+      .sort({ _id: -1 });
+    if (!materialPayment) {
+      return res.status(404);
+    }
+    return res.json(materialPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialPayments/get/:id
+// Desc Get material payment by ID
+
+router.get('/get/:id', async (req, res) => {
+  try {
+    const materialPayment = await MaterialPayment.findById({
+      _id: req.params.id,
+    })
+      .populate('materialName', ['materialName'])
+      .populate('supplierName', ['supplierName']);
+    if (!materialPayment) {
+      return res.status(404);
+    }
+    return res.json(materialPayment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -145,6 +163,33 @@ router.use('/:materialPaymentsId', (req, res, next) => {
         return res.sendStatus(404);
       }
     );
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//PUT
+router.put('/:materialPaymentsId', async (req, res) => {
+  try {
+    const { materialPayments } = req;
+    const material = await Material.findOne({
+      materialName: req.body.materialName,
+    });
+    const supplier = await Supplier.findOne({
+      supplierName: req.body.supplierName,
+    });
+    materialPayments.materialName = material._id;
+    materialPayments.supplierName = supplier._id;
+    materialPayments.date = req.body.date;
+    materialPayments.amount = req.body.amount;
+    materialPayments.description = req.body.description;
+    req.materialPayments.save((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(materialPayments);
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

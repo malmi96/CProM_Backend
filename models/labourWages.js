@@ -5,20 +5,22 @@ const labourWagesSchema = mongoose.Schema({
   labour: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Labour',
-    required: true
+    required: true,
   },
+  nic: { type: String, required: true },
   projectName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: true,
   },
   stageName: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Stage',
-    required: true
+    required: true,
   },
   paymentDate: { type: Date, default: Date.now },
-  amount: { type: Number, required: true }
+  amount: { type: Number, required: true },
+  description: { type: String },
 });
 
 module.exports = mongoose.model('LabourWages', labourWagesSchema);

@@ -1,5 +1,5 @@
 const express = require('express');
-
+const Customer = require('../models/customer');
 const CustomerPayment = require('../models/customerPayments');
 const Project = require('../models/project');
 
@@ -9,14 +9,31 @@ const { check, validationResult } = require('express-validator');
 //POST api/customerPayments
 //Desc add customer Payments
 router.post('/add', async (req, res) => {
-  const { customer, projectName, paymentDate, amount } = req.body;
+  const {
+    customerName,
+    projectName,
+    paymentDate,
+    paymentType,
+    amount,
+    method,
+    description,
+  } = req.body;
   try {
+    const project = await Project.findOne({
+      projectName: projectName,
+    });
+    const customer = await Customer.findOne({
+      customerName: customerName,
+    });
     //Initializing customerPayment object
     customerPayment = new CustomerPayment({
-      customer,
-      projectName,
-      paymentDate,
-      amount,
+      customerName: customer._id,
+      projectName: project._id,
+      paymentDate: paymentDate,
+      paymentType: paymentType,
+      amount: amount,
+      method: method,
+      description: description,
     });
 
     await customerPayment.save();
@@ -47,14 +64,36 @@ router.post('/add/projectName', async (req, res) => {
 
 //GET api/users/customerPayments/get
 //Desc View customerPayments info
-router.get('/get', (req, res) => {
+router.get('/get', async (req, res) => {
   try {
-    CustomerPayment.find((err, customerPayments) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.json(customerPayments);
-    });
+    const customerPayment = await CustomerPayment.find()
+      .populate('customerName', ['customerName'])
+      .populate('projectName', ['projectName'])
+      .sort({ _id: -1 });
+    if (!customerPayment) {
+      return res.status(404);
+    }
+    return res.json(customerPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/users/customerPayments/get/:id
+// Desc Get project by ID
+
+router.get('/get/:id', async (req, res) => {
+  try {
+    const customerPayment = await CustomerPayment.findById({
+      _id: req.params.id,
+    })
+      .populate('customerName', ['customerName'])
+      .populate('projectName', ['projectName']);
+    if (!customerPayment) {
+      return res.status(404);
+    }
+    return res.json(customerPayment);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -77,6 +116,36 @@ router.use('/:customerPaymentsId', (req, res, next) => {
         return res.sendStatus(404);
       }
     );
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//PUT
+
+router.put('/:customerPaymentsId', async (req, res) => {
+  try {
+    const { customerPayments } = req;
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const customer = await Customer.findOne({
+      customerName: req.body.customerName,
+    });
+    customerPayments.customerName = customer._id;
+    customerPayments.projectName = project._id;
+    customerPayments.paymentDate = req.body.paymentDate;
+    customerPayments.paymentType = req.body.paymentType;
+    customerPayments.amount = req.body.amount;
+    customerPayments.method = req.body.method;
+    customerPayments.description = req.body.description;
+    req.customerPayments.save((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.json(customerPayments);
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

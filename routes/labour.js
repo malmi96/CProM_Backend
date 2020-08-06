@@ -77,6 +77,20 @@ router.get('/:labourId', async (req, res) => {
   }
 });
 
+//Get api/labour/view/:labourName
+//Desc Get labour from labour Name
+router.get('/view/:labourName', async (req, res) => {
+  try {
+    const labour = await Labour.find({
+      labourName: req.params.labourName,
+    });
+    return res.json(labour);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:labourId', (req, res, next) => {
   try {
