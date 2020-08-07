@@ -3,6 +3,7 @@ const express = require('express');
 const MaterialAllocation = require('../models/materialAllocation');
 const Material = require('../models/material');
 const Project = require('../models/project');
+const MaterialAllocationLog = require('../models/materialAllocationLog');
 
 const router = express.Router();
 
@@ -12,28 +13,41 @@ const router = express.Router();
 router.post('/add', async (req, res) => {
   const { materialName, quantity, unit, projectName, date } = req.body;
   try {
-    let project = await Project.findOne({ projectName: projectName });
-    let materialCheck = await Material.findOne({ materialName: materialName });
-    //To check whether the material type exists
-    let material = await MaterialAllocation.findOne({
-      materialName: materialCheck._id,
-      projectName: project._id,
-    });
-    if (material) {
-      return res.status(400).json({
-        errors: [{ msg: 'This material is already allocated to this project' }],
-      });
-    }
+    var project = await Project.findOne({ projectName: projectName });
+    var material = await Material.findOne({ materialName: materialName });
+    // log
     //Initializing materialAllocation object
-    materialAllocation = new MaterialAllocation({
-      materialName: materialCheck._id,
+    var materialAllocationLog = new MaterialAllocationLog({
+      materialName: material._id,
       quantity: quantity,
       projectName: project._id,
       unit: unit,
       date: date,
     });
-    await materialAllocation.save();
-    res.status(200).json(materialAllocation);
+    await materialAllocationLog.save();
+
+    // Material Allocation Schema
+    //To check whether the material type exists
+    var materialAllocation = await MaterialAllocation.findOne({
+      materialName: material._id,
+      projectName: project._id,
+    });
+    if (materialAllocation) {
+      materialAllocation.quantity = materialAllocation.quantity + quantity;
+      materialAllocation.save();
+    } else {
+      //Initializing materialAllocation object
+      materialAllocation = new MaterialAllocation({
+        materialName: material._id,
+        quantity: quantity,
+        projectName: project._id,
+        unit: unit,
+        date: date,
+      });
+
+      await materialAllocation.save();
+    }
+    return res.status(200).json(materialAllocationLog);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -86,6 +100,72 @@ router.get('/get', (req, res) => {
       }
       return res.json(materialAllocation);
     });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialAllocation/get/:projectName
+
+router.get('/get/:projectName', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.params.projectName,
+    });
+    const materialAllocation = await MaterialAllocation.find({
+      projectName: project._id,
+    }).populate('materialName', ['materialName']);
+
+    return res.json(materialAllocation);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialAllocation/get/:materialName
+
+router.get('/get/material/:materialName', async (req, res) => {
+  try {
+    const material = await Material.findOne({
+      materialName: req.params.materialName,
+    });
+    const materialAllocation = await MaterialAllocation.find({
+      materialName: material._id,
+    }).populate('projectName', ['projectName']);
+
+    return res.json(materialAllocation);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialAllocation/log
+
+router.get('/log', async (req, res) => {
+  try {
+    const materialAllocationLog = await MaterialAllocationLog.find({})
+      .populate('projectName', ['projectName'])
+      .populate('materialName', ['materialName']);
+    return res.json(materialAllocationLog);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// delete log
+
+router.get('/delete/:id', async (req, res) => {
+  try {
+    const materialAllocationLog = await MaterialAllocationLog.findByIdAndDelete(
+      {
+        _id: req.params.id,
+      }
+    );
+    return res.json(materialAllocationLog);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

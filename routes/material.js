@@ -9,7 +9,7 @@ const router = express.Router();
 //Desc add materials
 
 router.post('/add', checkAuth, async (req, res) => {
-  const { materialCategory, materialName, quantity, unit, unitCost } = req.body;
+  const { materialCategory, materialName, unit, unitCost } = req.body;
   try {
     //To check whether the material type exists
     let material = await Material.findOne({
@@ -24,7 +24,6 @@ router.post('/add', checkAuth, async (req, res) => {
     material = new Material({
       materialCategory,
       materialName,
-      quantity,
       unit,
       unitCost,
     });

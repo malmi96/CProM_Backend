@@ -51,5 +51,7 @@ app.use('/api/materialConsumption', require('./routes/materialConsumption'));
 app.use('/api/image', require('./routes/image'));
 app.use('/api/otherPayments', require('./routes/otherPayments'));
 app.use('/api/machineryType', require('./routes/machineryType'));
+app.use('/api/reorderLevel', require('./routes/reorderLevel'));
+app.use('/api/inquiry', require('./routes/inquiry'));
 
 app.get('/', (req, res) => res.send('API Running'));
