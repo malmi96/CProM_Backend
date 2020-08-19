@@ -1,5 +1,6 @@
 const express = require('express');
 const Inquiry = require('../models/inquiry');
+const Employee = require('../models/employee');
 var nodemailer = require('nodemailer');
 
 const router = express.Router();
@@ -18,20 +19,31 @@ router.post('/add', async (req, res) => {
       date: Date.now(),
     });
     await inquiry.save();
+    const salesManager = await Employee.find({
+      designation: 'Sales and Marketing Manager',
+    });
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'malmi.atapattu4@aiesec.net',
-        pass: 'AOYHOLQA',
+        user: 'cpromportal@gmail.com',
+        pass: 'CProM123',
       },
     });
     let mail = await transporter.sendMail({
-      from: 'malmi.atapattu4@aiesec.net',
+      from: 'cpromportal@gmail.com',
       to: 'malminatasha@gmail.com',
-      subject: 'Sending Email using Node.js',
-      text: 'That was easy!',
+      subject: 'New Customer Inquiry',
+      text: `We have recieved an Inquiry. Customer details are as follows. 
+      Customer Name: ${customerName}, Email: ${email}, Contact No.: ${contactNo}, Message: ${message}, Date: ${Date.now()}`,
+    });
+    let customermail = await transporter.sendMail({
+      from: 'cpromportal@gmail.com',
+      to: 'malminatasha@gmail.com',
+      subject: 'Thank you for your interest',
+      text: `We have recieved an Inquiry from you.`,
     });
     console.log(mail);
+    console.log(customermail);
     res.status(200).json(inquiry);
   } catch (err) {
     console.log(err.message);

@@ -53,5 +53,8 @@ app.use('/api/otherPayments', require('./routes/otherPayments'));
 app.use('/api/machineryType', require('./routes/machineryType'));
 app.use('/api/reorderLevel', require('./routes/reorderLevel'));
 app.use('/api/inquiry', require('./routes/inquiry'));
+app.use('/api/projectExpenses', require('./routes/projectExpenses'));
+app.use('/api/report', require('./routes/report'));
+app.use('/api/task', require('./routes/task'));
 
 app.get('/', (req, res) => res.send('API Running'));

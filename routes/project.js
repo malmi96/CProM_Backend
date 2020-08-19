@@ -1,6 +1,7 @@
 const express = require('express');
 const Customer = require('../models/customer');
 const Project = require('../models/project');
+const Stage = require('../models/stage');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
@@ -115,6 +116,27 @@ router.get('/view/:projectName', async (req, res) => {
     if (!project) {
       return res.status(404);
     }
+    return res.json(project);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/project/customer/:customerId
+// Desc Get Project from customer Id
+
+router.get('/customer/:id', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectOwner: req.params.id,
+    });
+    if (!project) {
+      return res.status(404);
+    }
+    const stages = await Stage.find({
+      projectName: project._id,
+    });
     return res.json(project);
   } catch (err) {
     console.log(err.message);

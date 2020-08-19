@@ -118,6 +118,26 @@ router.get('/get/:id', async (req, res) => {
   }
 });
 
+// GET api/machineryPayments/dailyExpenses/:date
+// Desc Get machinery payment by DATE
+
+router.post('/dailyExpenses', async (req, res) => {
+  try {
+    const date = new Date(req.body.date);
+    const payment = await MachineryPayment.find({
+      date: date,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:machineryPaymentsId', (req, res, next) => {
   try {

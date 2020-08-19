@@ -100,6 +100,28 @@ router.get('/get/:id', async (req, res) => {
   }
 });
 
+router.get('/total/:projectName', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.params.projectName,
+    }).populate('projectOwner', ['customerName']);
+    const customerPayment = await CustomerPayment.find({
+      projectName: project._id,
+    });
+    var totalPayments = 0;
+    customerPayment.forEach((response) => {
+      totalPayments = response.amount + totalPayments;
+    });
+    return res.json({
+      customerName: project.projectOwner,
+      totalPayments: totalPayments,
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:customerPaymentsId', (req, res, next) => {
   try {

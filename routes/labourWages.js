@@ -144,6 +144,48 @@ router.get('/get/:id', async (req, res) => {
   }
 });
 
+// GET api/labourWages/dailyExpenses/:date
+// Desc Get total labour wages by DATE
+
+router.post('/dailyExpenses', async (req, res) => {
+  try {
+    const date = new Date(req.body.date);
+    const payment = await LabourWages.find({
+      paymentDate: date,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/labourWages/projectExpenses
+// Desc Get total labour wages by DATE
+
+router.post('/projectExpenses', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const payment = await LabourWages.find({
+      projectName: project._id,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:labourWagesId', async (req, res, next) => {
   try {

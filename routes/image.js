@@ -132,6 +132,25 @@ router.get('/get/:projectId/:stageId', async (req, res) => {
   }
 });
 
+router.post('/stageName', async (req, res) => {
+  try {
+    console.log(req.body);
+    const stage = await Stage.findOne({
+      stageName: req.body.stageName,
+    });
+    const image = await Image.find({
+      stageName: stage._id,
+    });
+    if (!image) {
+      return res.status(404);
+    }
+    return res.json(image);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:imageId', (req, res, next) => {
   try {

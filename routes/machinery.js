@@ -1,6 +1,7 @@
 const express = require('express');
 const Machinery = require('../models/machinery');
 const MachineryType = require('../models/machineryTypes');
+var nodemailer = require('nodemailer');
 const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
@@ -90,25 +91,38 @@ router.use('/:machineryId', (req, res, next) => {
   }
 });
 
-router.put('/:machineryId', (req, res) => {
+router.put('/:machineryId', async (req, res) => {
   try {
     const { machinery } = req;
-    MachineryType.findOne({ machineryType: req.body.machineryType }, function (
-      err,
-      machineryType
-    ) {
-      machinery.machineryName = req.body.machineryName;
-      machinery.machineryType = machineryType._id;
-      machinery.machineryCondition = req.body.machineryCondition;
-      machinery.date = req.body.date;
-
-      req.machinery.save((err) => {
-        if (err) {
-          return res.send(err);
-        }
-        return res.json(machinery);
-      });
+    const machineryType = await MachineryType.findOne({
+      machineryType: req.body.machineryType,
     });
+    if (req.body.machineryCondition === 'Critical') {
+      var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'cpromportal@gmail.com',
+          pass: 'CProM123',
+        },
+      });
+      let mail = await transporter.sendMail({
+        from: 'cpromportal@gmail.com',
+        to: 'malminatasha@gmail.com',
+        subject: 'Machinery Condition is Critical',
+        text: `Machinery details are as follows. 
+          Machinery Name: ${
+            req.body.machineryName
+          },  Date: ${new Date().toString()}`,
+      });
+      console.log(mail);
+    }
+    machinery.machineryName = req.body.machineryName;
+    machinery.machineryType = machineryType._id;
+    machinery.machineryCondition = req.body.machineryCondition;
+    machinery.date = req.body.date;
+
+    await req.machinery.save();
+    return res.json(machinery);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

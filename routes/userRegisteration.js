@@ -45,6 +45,7 @@ router.post('/login', async (req, res) => {
           res.status(200).json({
             token: token,
             userType: 'Customer',
+            userId: user._id,
           });
         }
       );
@@ -84,6 +85,7 @@ router.post('/login', async (req, res) => {
           res.status(200).json({
             token: token,
             userType: user.designation,
+            userId: user._id,
           });
         }
       );

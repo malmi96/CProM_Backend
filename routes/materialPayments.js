@@ -12,7 +12,16 @@ const { check, validationResult } = require('express-validator');
 //POST api/materialPayments
 //Desc add material Payments
 router.post('/add', async (req, res) => {
-  const { materialName, supplierName, date, amount, description } = req.body;
+  const {
+    materialName,
+    supplierName,
+    projectName,
+    quantity,
+    unit,
+    date,
+    amount,
+    description,
+  } = req.body;
   try {
     const material = await Material.findOne({
       materialName: materialName,
@@ -20,10 +29,16 @@ router.post('/add', async (req, res) => {
     const supplier = await Supplier.findOne({
       supplierName: supplierName,
     });
+    const project = await Project.findOne({
+      projectName: projectName,
+    });
     //Initializing materialPayment object
     materialPayment = new MaterialPayment({
       materialName: material._id,
       supplierName: supplier._id,
+      projectName: project._id,
+      quantity: quantity,
+      unit: unit,
       date: date,
       amount: amount,
       description: description,
@@ -136,11 +151,54 @@ router.get('/get/:id', async (req, res) => {
       _id: req.params.id,
     })
       .populate('materialName', ['materialName'])
-      .populate('supplierName', ['supplierName']);
+      .populate('supplierName', ['supplierName'])
+      .populate('projectName', ['projectName']);
     if (!materialPayment) {
       return res.status(404);
     }
     return res.json(materialPayment);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialPayments/dailyExpenses/:date
+// Desc Get material payment by DATE
+
+router.post('/dailyExpenses', async (req, res) => {
+  try {
+    const date = new Date(req.body.date);
+    const payment = await MaterialPayment.find({
+      date: date,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/materialPayments/projectExpenses
+// Desc Get payments by the project name
+
+router.post('/projectExpenses', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const payment = await MaterialPayment.find({
+      projectName: project._id,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -179,8 +237,14 @@ router.put('/:materialPaymentsId', async (req, res) => {
     const supplier = await Supplier.findOne({
       supplierName: req.body.supplierName,
     });
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
     materialPayments.materialName = material._id;
     materialPayments.supplierName = supplier._id;
+    materialPayments.projectName = project._id;
+    materialPayments.quantity = req.body.quantity;
+    materialPayments.unit = req.body.unit;
     materialPayments.date = req.body.date;
     materialPayments.amount = req.body.amount;
     materialPayments.description = req.body.description;

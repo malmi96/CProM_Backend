@@ -114,6 +114,48 @@ router.get('/get/:id', async (req, res) => {
   }
 });
 
+// GET api/utilityPayments/dailyExpenses/:date
+// Desc Get utility payment by DATE
+
+router.post('/dailyExpenses', async (req, res) => {
+  try {
+    const date = new Date(req.body.date);
+    const payment = await UtilityPayment.find({
+      date: date,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET api/utilityPayments/projectExpenses
+// Desc Get payments by the project name
+
+router.post('/projectExpenses', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.body.projectName,
+    });
+    const payment = await UtilityPayment.find({
+      projectName: project._id,
+    });
+    var totalCost = 0;
+    payment.forEach((res) => {
+      totalCost = res.amount + totalCost;
+    });
+    return res.json(totalCost);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 //Implementing middleware
 router.use('/:utilityPaymentsId', (req, res, next) => {
   try {

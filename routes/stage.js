@@ -2,9 +2,11 @@ const express = require('express');
 const Stage = require('../models/stage');
 const Project = require('../models/project');
 const Labour = require('../models/labour');
+const Task = require('../models/tasks');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const tasks = require('../models/tasks');
 
 //POST api/stage/add
 //Desc Add new stage
@@ -118,7 +120,8 @@ router.get('/:projectId', async (req, res) => {
   try {
     const stages = await Stage.find({ projectName: req.params.projectId })
       .populate('stageSupervisor', ['labourName'])
-      .populate('projectName', ['projectName']);
+      .populate('projectName', ['projectName'])
+      .sort({ _id: -1 });
     if (!stages) {
       return res.status(404);
     }
@@ -136,6 +139,45 @@ router.get('/view/:projectName', async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
+    });
+    const stages = await Stage.find({ projectName: project._id })
+      .populate('stageSupervisor', ['labourName'])
+      .populate('projectName', ['projectName']);
+    if (!stages) {
+      return res.status(404);
+    }
+    return res.json(stages);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//Desc View stages of a given project for gantt chart
+
+router.get('/gantt/:projectName', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectName: req.params.projectName,
+    });
+    const stages = await Stage.find({ projectName: project._id })
+      .populate('stageSupervisor', ['labourName'])
+      .populate('projectName', ['projectName']);
+    if (!stages) {
+      return res.status(404);
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+//GET api/stage/customer/id
+
+router.get('/customer/:id', async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      projectOwner: req.params.id,
     });
     const stages = await Stage.find({ projectName: project._id })
       .populate('stageSupervisor', ['labourName'])
