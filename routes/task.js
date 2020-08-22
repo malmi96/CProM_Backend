@@ -1,10 +1,11 @@
 const express = require('express');
-const Stage = require('../models/stage');
+const StageProgress = require('../models/stageProgress');
 const Project = require('../models/project');
 const Task = require('../models/tasks');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const stageProgress = require('../models/stageProgress');
 
 //POST api/stage/add
 //Desc Add new stage
@@ -36,6 +37,57 @@ router.post('/add', async (req, res) => {
       projectName: projectName,
     });
     await task.save();
+    if(req.body.status === 'Completed' ){
+      let completedTasks = await Task.find({
+        stageName: stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: stageName
+      });
+      if(completedTasks.length === 0 && !stagePro){
+        let stageProgress = new StageProgress({
+          stageName: stageName,
+          progress: 1 / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if(completedTasks.length === 0 && stagePro){
+        stagePro.progress = 1 / totTasks.length * 100;
+        await stagePro.save();
+      }
+      else if(completedTasks.length !== 0 && !stagePro ){
+        let stageProgress = new StageProgress({
+          stageName: stageName,
+          progress: completedTasks.length / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if( completedTasks.length !== 0 && stagePro){
+        stagePro.progress = (completedTasks.length) / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+    else{
+      let completedTasks = await Task.find({
+        stageName: stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: stageName
+      });
+      if(stagePro){
+        stagePro.progress = completedTasks.length / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+    
     res.status(200).json(task);
   } catch (err) {
     console.log(err.message);
@@ -104,6 +156,57 @@ router.patch('/status/:taskId', async (req, res) => {
       task[key] = value;
     });
     await task.save();
+    if(req.body.status === 'Completed' ){
+      let completedTasks = await Task.find({
+        stageName: task.stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: task.stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: task.stageName
+      });
+      if(completedTasks.length === 0 && !stagePro){
+        let stageProgress = new StageProgress({
+          stageName: task.stageName,
+          progress: 1 / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if(completedTasks.length === 0 && stagePro){
+        stagePro.progress = 1 / totTasks.length * 100;
+        await stagePro.save();
+      }
+      else if(completedTasks.length !== 0 && !stagePro ){
+        let stageProgress = new StageProgress({
+          stageName: task.stageName,
+          progress: completedTasks.length / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if( completedTasks.length !== 0 && stagePro){
+        stagePro.progress = (completedTasks.length) / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+    else{
+      let completedTasks = await Task.find({
+        stageName: task.stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: task.stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: task.stageName
+      });
+      if(stagePro){
+        stagePro.progress = completedTasks.length / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+
     return res.json(task);
   } catch (err) {
     console.log(err.message);
@@ -123,6 +226,58 @@ router.patch('/update/:taskId', async (req, res) => {
       task[key] = value;
     });
     await task.save();
+    
+    if(req.body.status === 'Completed' ){
+      let completedTasks = await Task.find({
+        stageName: task.stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: task.stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: task.stageName
+      });
+      if(completedTasks.length === 0 && !stagePro){
+        let stageProgress = new StageProgress({
+          stageName: task.stageName,
+          progress: 1 / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if(completedTasks.length === 0 && stagePro){
+        stagePro.progress = 1 / totTasks.length * 100;
+        await stagePro.save();
+      }
+      else if(completedTasks.length !== 0 && !stagePro ){
+        let stageProgress = new StageProgress({
+          stageName: task.stageName,
+          progress: completedTasks.length / totTasks.length * 100
+        })
+        await stageProgress.save();
+      }
+      else if( completedTasks.length !== 0 && stagePro){
+        stagePro.progress = (completedTasks.length) / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+    else{
+      let completedTasks = await Task.find({
+        stageName: task.stageName,
+        status: 'Completed'
+      });
+      let totTasks = await Task.find({
+        stageName: task.stageName
+      });
+      let stagePro = await StageProgress.findOne({
+        stageName: task.stageName
+      });
+      if(stagePro){
+        stagePro.progress = completedTasks.length / totTasks.length * 100;
+        await stagePro.save();
+      }
+    }
+
     return res.json(task);
   } catch (err) {
     console.log(err.message);
@@ -138,6 +293,21 @@ router.delete('/delete/:taskId', async (req, res) => {
       _id: req.params.taskId,
     });
     await task.remove();
+    let completedTasks = await Task.find({
+      stageName: task.stageName,
+      status: 'Completed'
+    });
+    let totTasks = await Task.find({
+      stageName: task.stageName
+    });
+    let stagePro = await StageProgress.findOne({
+      stageName: task.stageName
+    });
+    if(stagePro){
+      stagePro.progress = completedTasks.length / totTasks.length * 100;
+      await stagePro.save();
+    }
+
     return res.sendStatus(204);
   } catch (err) {
     console.log(err.message);

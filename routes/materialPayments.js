@@ -169,13 +169,16 @@ router.get('/get/:id', async (req, res) => {
 router.post('/dailyExpenses', async (req, res) => {
   try {
     const date = new Date(req.body.date);
+    
     const payment = await MaterialPayment.find({
       date: date,
     });
+    
     var totalCost = 0;
     payment.forEach((res) => {
       totalCost = res.amount + totalCost;
     });
+    
     return res.json(totalCost);
   } catch (err) {
     console.log(err.message);

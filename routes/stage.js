@@ -3,6 +3,7 @@ const Stage = require('../models/stage');
 const Project = require('../models/project');
 const Labour = require('../models/labour');
 const Task = require('../models/tasks');
+const StageProgress = require('../models/stageProgress');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
@@ -166,6 +167,31 @@ router.get('/gantt/:projectName', async (req, res) => {
     if (!stages) {
       return res.status(404);
     }
+    var ganttArr = [];
+    let promises = stages.map(stage => Task.find({
+      stageName: stage._id
+    }).populate('stageName', ['stageName', 'stageStartedDate',
+    'stageEndingDate']));
+    Promise.all(promises)
+    .then(results => {
+        results.forEach(task => {
+          if (task.length === 0){
+            return res.json({msg: 'Not allocated tasks'})
+          }
+          else{
+            const stage = task[0].stageName;
+          ganttArr.push({
+            stage,
+            task
+          })
+          }
+        })
+        if(ganttArr.length !== 0){
+          console.log(ganttArr);
+        return res.json(ganttArr);
+        } 
+      }
+    )
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -263,8 +289,12 @@ router.patch('/:stageId', (req, res) => {
 
 //DELETE
 
-router.delete('/:stageId', (req, res) => {
-  try {
+router.delete('/:stageId', async (req, res) => {
+  try { 
+    const stagePro = await StageProgress.findOne({
+      stageName: req.stage._id
+    });
+    stagePro.remove();
     req.stage.remove((err) => {
       if (err) {
         return res.send(err);

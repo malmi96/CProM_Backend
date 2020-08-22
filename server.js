@@ -56,5 +56,8 @@ app.use('/api/inquiry', require('./routes/inquiry'));
 app.use('/api/projectExpenses', require('./routes/projectExpenses'));
 app.use('/api/report', require('./routes/report'));
 app.use('/api/task', require('./routes/task'));
+app.use('/api/dash', require('./routes/overallProjectProgress'));
+app.use('/api/totalPayments', require('./routes/totalPayments'));
+app.use('/api/totalMaterials', require('./routes/totalMaterialConsumption'));
 
 app.get('/', (req, res) => res.send('API Running'));
