@@ -4,11 +4,12 @@ const CustomerPayment = require('../models/customerPayments');
 const Project = require('../models/project');
 
 const router = express.Router();
+const checkAuth = require('../middleware/check-auth');
 const { check, validationResult } = require('express-validator');
 
 //POST api/customerPayments
 //Desc add customer Payments
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     customerName,
     projectName,
@@ -47,7 +48,7 @@ router.post('/add', async (req, res) => {
 //POST /api/customerPayments/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -64,7 +65,7 @@ router.post('/add/projectName', async (req, res) => {
 
 //GET api/users/customerPayments/get
 //Desc View customerPayments info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const customerPayment = await CustomerPayment.find()
       .populate('customerName', ['customerName'])
@@ -83,7 +84,7 @@ router.get('/get', async (req, res) => {
 // GET api/users/customerPayments/get/:id
 // Desc Get project by ID
 
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', checkAuth, async (req, res) => {
   try {
     const customerPayment = await CustomerPayment.findById({
       _id: req.params.id,
@@ -100,7 +101,7 @@ router.get('/get/:id', async (req, res) => {
   }
 });
 
-router.get('/total/:projectName', async (req, res) => {
+router.get('/total/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -123,7 +124,7 @@ router.get('/total/:projectName', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:customerPaymentsId', (req, res, next) => {
+router.use('/:customerPaymentsId', checkAuth, (req, res, next) => {
   try {
     CustomerPayment.findById(
       req.params.customerPaymentsId,
@@ -146,7 +147,7 @@ router.use('/:customerPaymentsId', (req, res, next) => {
 
 //PUT
 
-router.put('/:customerPaymentsId', async (req, res) => {
+router.put('/:customerPaymentsId', checkAuth, async (req, res) => {
   try {
     const { customerPayments } = req;
     const project = await Project.findOne({
@@ -175,7 +176,7 @@ router.put('/:customerPaymentsId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:customerPaymentsId', (req, res) => {
+router.patch('/:customerPaymentsId', checkAuth, (req, res) => {
   try {
     const { customerPayments } = req;
     if (req.body._id) {
@@ -200,7 +201,7 @@ router.patch('/:customerPaymentsId', (req, res) => {
 
 //DELETE
 
-router.delete('/:customerPaymentsId', (req, res) => {
+router.delete('/:customerPaymentsId', checkAuth, (req, res) => {
   try {
     req.customerPayments.remove((err) => {
       if (err) {

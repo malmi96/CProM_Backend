@@ -4,12 +4,13 @@ const UtilityPayment = require('../models/utilityPayments');
 const Project = require('../models/project');
 const Stage = require('../models/stage');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
 //POST api/utilityPayments
 //Desc add utility Payments
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     paymentType,
     projectName,
@@ -43,7 +44,7 @@ router.post('/add', async (req, res) => {
 //POST /api/utilityPayments/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -61,7 +62,7 @@ router.post('/add/projectName', async (req, res) => {
 //POST /api/utilityPayments/add/stageName
 //Desc Searching stageName
 
-router.post('/add/stageName', async (req, res) => {
+router.post('/add/stageName', checkAuth, async (req, res) => {
   try {
     const stage = await Stage.findOne({
       stageName: req.body.stageName,
@@ -78,7 +79,7 @@ router.post('/add/stageName', async (req, res) => {
 
 //GET api/utilityPayments/get
 //Desc View utilityPayments info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const utilityPayment = await UtilityPayment.find()
       .populate('projectName', ['projectName'])
@@ -97,7 +98,7 @@ router.get('/get', async (req, res) => {
 // GET api/utilityPayments/get/:id
 // Desc Get utility payment by ID
 
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', checkAuth, async (req, res) => {
   try {
     const utilityPayment = await UtilityPayment.findById({
       _id: req.params.id,
@@ -117,7 +118,7 @@ router.get('/get/:id', async (req, res) => {
 // GET api/utilityPayments/dailyExpenses/:date
 // Desc Get utility payment by DATE
 
-router.post('/dailyExpenses', async (req, res) => {
+router.post('/dailyExpenses', checkAuth, async (req, res) => {
   try {
     const date = new Date(req.body.date);
     const payment = await UtilityPayment.find({
@@ -137,7 +138,7 @@ router.post('/dailyExpenses', async (req, res) => {
 // GET api/utilityPayments/projectExpenses
 // Desc Get payments by the project name
 
-router.post('/projectExpenses', async (req, res) => {
+router.post('/projectExpenses', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -157,7 +158,7 @@ router.post('/projectExpenses', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:utilityPaymentsId', (req, res, next) => {
+router.use('/:utilityPaymentsId', checkAuth, (req, res, next) => {
   try {
     UtilityPayment.findById(
       req.params.utilityPaymentsId,
@@ -179,7 +180,7 @@ router.use('/:utilityPaymentsId', (req, res, next) => {
 });
 
 //PUT
-router.put('/:utilityPaymentsId', async (req, res) => {
+router.put('/:utilityPaymentsId', checkAuth, async (req, res) => {
   try {
     const { utilityPayments } = req;
     const project = await Project.findOne({
@@ -207,7 +208,7 @@ router.put('/:utilityPaymentsId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:utilityPaymentsId', (req, res) => {
+router.patch('/:utilityPaymentsId', checkAuth, (req, res) => {
   try {
     const { utilityPayments } = req;
     if (req.body._id) {
@@ -232,7 +233,7 @@ router.patch('/:utilityPaymentsId', (req, res) => {
 
 //DELETE
 
-router.delete('/:utilityPaymentsId', (req, res) => {
+router.delete('/:utilityPaymentsId', checkAuth, (req, res) => {
   try {
     req.utilityPayments.remove((err) => {
       if (err) {

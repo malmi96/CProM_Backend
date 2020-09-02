@@ -8,12 +8,13 @@ const Project = require('../models/project');
 const Stage = require('../models/stage');
 const Task = require('../models/tasks');
 const Supplier = require('../models/supplier');
+const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
 
 // Desc Get payments by the project name
 
-router.post('/supplierReport', async (req, res) => {
+router.post('/supplierReport', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialName: req.body.materialName,
@@ -38,7 +39,7 @@ router.post('/supplierReport', async (req, res) => {
 
 // Desc get project progress from project name
 
-router.post('/progress', async (req,res) => {
+router.post('/progress', checkAuth, async (req,res) => {
   try{
     const project = await Project.findOne({
       projectName: req.body.projectName

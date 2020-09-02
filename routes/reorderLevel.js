@@ -3,10 +3,11 @@ const Material = require('../models/material');
 const Supplier = require('../models/supplier');
 const MaterialConsumption = require('../models/materialConsumption');
 const reorderFormula = require('../businessLogics/reorderFormula');
+const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
 
-router.get('/:materialId', async (req, res) => {
+router.get('/:materialId', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       _id: req.params.materialId,

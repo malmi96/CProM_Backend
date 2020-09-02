@@ -4,13 +4,14 @@ const MaterialAllocation = require('../models/materialAllocation');
 const Material = require('../models/material');
 const Project = require('../models/project');
 const MaterialAllocationLog = require('../models/materialAllocationLog');
+const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
 
 //POST /api/materialAllocation/add
 //Desc allocate materials to each project
 
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const { materialName, quantity, unit, projectName, date } = req.body;
   try {
     var project = await Project.findOne({ projectName: projectName });
@@ -57,7 +58,7 @@ router.post('/add', async (req, res) => {
 //POST /api/materialAllocation/add/materialType
 //Desc Searching materialType
 
-router.post('/add/materialType', async (req, res) => {
+router.post('/add/materialType', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialType: req.body.materialType,
@@ -75,7 +76,7 @@ router.post('/add/materialType', async (req, res) => {
 //POST /api/materialAllocation/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -92,7 +93,7 @@ router.post('/add/projectName', async (req, res) => {
 
 //GET api/materialAllocation/get
 //Desc View materialAllocation info
-router.get('/get', (req, res) => {
+router.get('/get', checkAuth, (req, res) => {
   try {
     MaterialAllocation.find((err, materialAllocation) => {
       if (err) {
@@ -108,7 +109,7 @@ router.get('/get', (req, res) => {
 
 // GET api/materialAllocation/get/:projectName
 
-router.get('/get/:projectName', async (req, res) => {
+router.get('/get/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -126,7 +127,7 @@ router.get('/get/:projectName', async (req, res) => {
 
 // GET api/materialAllocation/get/:materialName
 
-router.get('/get/material/:materialName', async (req, res) => {
+router.get('/get/material/:materialName', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialName: req.params.materialName,
@@ -144,7 +145,7 @@ router.get('/get/material/:materialName', async (req, res) => {
 
 // GET api/materialAllocation/log
 
-router.get('/log', async (req, res) => {
+router.get('/log', checkAuth, async (req, res) => {
   try {
     const materialAllocationLog = await MaterialAllocationLog.find({})
       .populate('projectName', ['projectName'])
@@ -158,7 +159,7 @@ router.get('/log', async (req, res) => {
 
 // delete log
 
-router.get('/delete/:id', async (req, res) => {
+router.get('/delete/:id', checkAuth, async (req, res) => {
   try {
     const materialAllocationLog = await MaterialAllocationLog.findByIdAndDelete(
       {
@@ -173,7 +174,7 @@ router.get('/delete/:id', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:materialAllocationId', (req, res, next) => {
+router.use('/:materialAllocationId', checkAuth, (req, res, next) => {
   try {
     MaterialAllocation.findById(
       req.params.materialAllocationId,
@@ -195,7 +196,7 @@ router.use('/:materialAllocationId', (req, res, next) => {
 });
 
 //PATCH
-router.patch('/:materialAllocationId', (req, res) => {
+router.patch('/:materialAllocationId', checkAuth, (req, res) => {
   try {
     const { materialAllocation } = req;
     if (req.body._id) {
@@ -220,7 +221,7 @@ router.patch('/:materialAllocationId', (req, res) => {
 
 //DELETE
 
-router.delete('/:materialAllocationId', (req, res) => {
+router.delete('/:materialAllocationId', checkAuth, (req, res) => {
   try {
     req.materialAllocation.remove((err) => {
       if (err) {

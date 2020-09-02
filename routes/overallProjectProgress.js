@@ -5,11 +5,12 @@ const Stage = require('../models/stage');
 const Task = require('../models/tasks');
 const StageProgress = require('../models/stageProgress');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 // Desc get project progress from project name
 
-router.get('/progress', async (req,res) => {
+router.get('/progress', checkAuth, async (req,res) => {
   try{
     
     const progressList = await StageProgress.find()

@@ -3,13 +3,14 @@ const StageProgress = require('../models/stageProgress');
 const Project = require('../models/project');
 const Task = require('../models/tasks');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const stageProgress = require('../models/stageProgress');
 
 //POST api/stage/add
 //Desc Add new stage
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     stageName,
     taskName,
@@ -95,7 +96,7 @@ router.post('/add', async (req, res) => {
   }
 });
 
-router.post('/stageName', async (req, res) => {
+router.post('/stageName', checkAuth, async (req, res) => {
   try {
     const task = await Task.find({
       stageName: req.body.stageName,
@@ -109,7 +110,7 @@ router.post('/stageName', async (req, res) => {
   }
 });
 
-router.get('/:taskId', async (req, res) => {
+router.get('/:taskId', checkAuth, async (req, res) => {
   try {
     const task = await Task.findById({
       _id: req.params.taskId,
@@ -145,7 +146,7 @@ router.get('/:taskId', async (req, res) => {
 });*/
 
 //PATCH
-router.patch('/status/:taskId', async (req, res) => {
+router.patch('/status/:taskId', checkAuth, async (req, res) => {
   try {
     const task = await Task.findById({
       _id: req.params.taskId,
@@ -215,7 +216,7 @@ router.patch('/status/:taskId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/update/:taskId', async (req, res) => {
+router.patch('/update/:taskId', checkAuth, async (req, res) => {
   try {
     const task = await Task.findById({
       _id: req.params.taskId,
@@ -287,7 +288,7 @@ router.patch('/update/:taskId', async (req, res) => {
 
 //DELETE
 
-router.delete('/delete/:taskId', async (req, res) => {
+router.delete('/delete/:taskId', checkAuth, async (req, res) => {
   try {
     const task = await Task.findById({
       _id: req.params.taskId,

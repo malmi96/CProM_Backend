@@ -6,12 +6,13 @@ const Project = require('../models/project');
 const Stage = require('../models/stage');
 const Supplier = require('../models/supplier');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
 //POST api/materialPayments
 //Desc add material Payments
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     materialName,
     supplierName,
@@ -55,7 +56,7 @@ router.post('/add', async (req, res) => {
 //POST /api/materialPayments/add/materialType
 //Desc Searching materialType
 
-router.post('/add/materialType', async (req, res) => {
+router.post('/add/materialType', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialType: req.body.materialType,
@@ -73,7 +74,7 @@ router.post('/add/materialType', async (req, res) => {
 //POST /api/materialPayments/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -91,7 +92,7 @@ router.post('/add/projectName', async (req, res) => {
 //POST /api/materialPayments/add/stageName
 //Desc Searching stageName
 
-router.post('/add/stageName', async (req, res) => {
+router.post('/add/stageName', checkAuth, async (req, res) => {
   try {
     const stage = await Stage.findOne({
       stageName: req.body.stageName,
@@ -109,7 +110,7 @@ router.post('/add/stageName', async (req, res) => {
 //POST /api/materialPayments/add/supplierName
 //Desc Searching supplierName
 
-router.post('/add/supplierName', async (req, res) => {
+router.post('/add/supplierName', checkAuth, async (req, res) => {
   try {
     const supplier = await Supplier.findOne({
       supplierName: req.body.supplierName,
@@ -126,7 +127,7 @@ router.post('/add/supplierName', async (req, res) => {
 
 //GET api/materialPayments/get
 //Desc View materialPayments info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const materialPayment = await MaterialPayment.find()
       .populate('materialName', ['materialName'])
@@ -145,7 +146,7 @@ router.get('/get', async (req, res) => {
 // GET api/materialPayments/get/:id
 // Desc Get material payment by ID
 
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', checkAuth, async (req, res) => {
   try {
     const materialPayment = await MaterialPayment.findById({
       _id: req.params.id,
@@ -166,7 +167,7 @@ router.get('/get/:id', async (req, res) => {
 // GET api/materialPayments/dailyExpenses/:date
 // Desc Get material payment by DATE
 
-router.post('/dailyExpenses', async (req, res) => {
+router.post('/dailyExpenses', checkAuth, async (req, res) => {
   try {
     const date = new Date(req.body.date);
     
@@ -189,7 +190,7 @@ router.post('/dailyExpenses', async (req, res) => {
 // GET api/materialPayments/projectExpenses
 // Desc Get payments by the project name
 
-router.post('/projectExpenses', async (req, res) => {
+router.post('/projectExpenses', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -209,7 +210,7 @@ router.post('/projectExpenses', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:materialPaymentsId', (req, res, next) => {
+router.use('/:materialPaymentsId', checkAuth, (req, res, next) => {
   try {
     MaterialPayment.findById(
       req.params.materialPaymentsId,
@@ -231,7 +232,7 @@ router.use('/:materialPaymentsId', (req, res, next) => {
 });
 
 //PUT
-router.put('/:materialPaymentsId', async (req, res) => {
+router.put('/:materialPaymentsId', checkAuth, async (req, res) => {
   try {
     const { materialPayments } = req;
     const material = await Material.findOne({
@@ -264,7 +265,7 @@ router.put('/:materialPaymentsId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:materialPaymentsId', (req, res) => {
+router.patch('/:materialPaymentsId', checkAuth, (req, res) => {
   try {
     const { materialPayments } = req;
     if (req.body._id) {
@@ -289,7 +290,7 @@ router.patch('/:materialPaymentsId', (req, res) => {
 
 //DELETE
 
-router.delete('/:materialPaymentsId', (req, res) => {
+router.delete('/:materialPaymentsId', checkAuth, (req, res) => {
   try {
     req.materialPayments.remove((err) => {
       if (err) {

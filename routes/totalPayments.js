@@ -10,11 +10,12 @@ const Task = require('../models/tasks');
 const Supplier = require('../models/supplier');
 const MachineryPayments = require('../models/machineryPayments');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 // Desc Get total payments 
 
-router.get('/payments', async (req, res) => {
+router.get('/payments', checkAuth, async (req, res) => {
   try {
       var totalMaterialPayments = 0
     const materialPayment = await MaterialPayment.find();

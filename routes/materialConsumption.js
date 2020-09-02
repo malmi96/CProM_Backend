@@ -8,12 +8,13 @@ const Project = require('../models/project');
 const Stage = require('../models/stage');
 const reorderFormula = require('../businessLogics/reorderFormula');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 //POST /api/materialConsumption/add
 //Desc add material consumption in each project
 
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     materialName,
     quantity,
@@ -97,7 +98,7 @@ router.post('/add', async (req, res) => {
 //POST /api/materialConsumption/add/materialType
 //Desc Searching materialType
 
-router.post('/add/materialType', async (req, res) => {
+router.post('/add/materialType', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialType: req.body.materialType,
@@ -115,7 +116,7 @@ router.post('/add/materialType', async (req, res) => {
 //POST /api/materialConsumption/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -133,7 +134,7 @@ router.post('/add/projectName', async (req, res) => {
 //POST /api/materialConsumption/add/stageName
 //Desc Searching stageName
 
-router.post('/add/stageName', async (req, res) => {
+router.post('/add/stageName', checkAuth, async (req, res) => {
   try {
     const stage = await Stage.findOne({
       stageName: req.body.stageName,
@@ -150,7 +151,7 @@ router.post('/add/stageName', async (req, res) => {
 
 //GET api/materialConsumption/get
 //Desc View materialConsumption info
-router.get('/get', (req, res) => {
+router.get('/get', checkAuth, (req, res) => {
   try {
     MaterialConsumption.find((err, materialConsumption) => {
       if (err) {
@@ -164,7 +165,7 @@ router.get('/get', (req, res) => {
   }
 });
 // Material Consumption by project Name
-router.get('/get/:projectName', async (req, res) => {
+router.get('/get/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -183,7 +184,7 @@ router.get('/get/:projectName', async (req, res) => {
 });
 
 // Material Consumption by project Name and stage name
-router.get('/stage/:projectName/:stageName', async (req, res) => {
+router.get('/stage/:projectName/:stageName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -206,7 +207,7 @@ router.get('/stage/:projectName/:stageName', async (req, res) => {
 });
 
 // Material Consumption by material Name
-router.get('/material/:materialName', async (req, res) => {
+router.get('/material/:materialName', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialName: req.params.materialName,
@@ -226,7 +227,7 @@ router.get('/material/:materialName', async (req, res) => {
 
 //GET api/materialConsumption/log
 
-router.get('/log', async (req, res) => {
+router.get('/log', checkAuth, async (req, res) => {
   try {
     const materialConsumptionLog = await MaterialConsumptionLog.find()
       .populate('projectName', ['projectName'])
@@ -240,7 +241,7 @@ router.get('/log', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:materialConsumptionId', (req, res, next) => {
+router.use('/:materialConsumptionId', checkAuth, (req, res, next) => {
   try {
     Material.findById(
       req.params.materialConsumptionId,
@@ -262,7 +263,7 @@ router.use('/:materialConsumptionId', (req, res, next) => {
 });
 
 //PATCH
-router.patch('/:materialConsumptionId', (req, res) => {
+router.patch('/:materialConsumptionId', checkAuth, (req, res) => {
   try {
     const { materialConsumption } = req;
     if (req.body._id) {
@@ -287,7 +288,7 @@ router.patch('/:materialConsumptionId', (req, res) => {
 
 //DELETE
 
-router.delete('/:materialConsumptionId', (req, res) => {
+router.delete('/:materialConsumptionId', checkAuth, (req, res) => {
   try {
     req.materialConsumption.remove((err) => {
       if (err) {

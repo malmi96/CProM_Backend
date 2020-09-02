@@ -6,6 +6,7 @@ const inquirySchema = mongoose.Schema({
   contactNo: { type: Number, required: true },
   message: { type: String },
   date: { type: Date, required: true },
+  status: {type: String}
 });
 
 module.exports = mongoose.model('Inquiry', inquirySchema);

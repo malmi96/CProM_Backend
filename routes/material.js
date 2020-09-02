@@ -1,6 +1,7 @@
 const express = require('express');
 
 const Material = require('../models/material');
+const MaterialAllocation = require('../models/materialAllocation');
 const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
@@ -38,7 +39,7 @@ router.post('/add', checkAuth, async (req, res) => {
 
 //GET api/material/get
 //Desc View material info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const materials = await Material.find().sort({ _id: -1 });
     if (!materials) {
@@ -54,7 +55,7 @@ router.get('/get', async (req, res) => {
 //GET api/material/materialID
 //Desc View stages of a given project
 
-router.get('/:materialId', async (req, res) => {
+router.get('/:materialId', checkAuth, async (req, res) => {
   try {
     const material = await Material.findById({ _id: req.params.materialId });
     if (!material) {
@@ -70,7 +71,7 @@ router.get('/:materialId', async (req, res) => {
 //GET api/material/materialName
 //Desc get unit names
 
-router.get('/materialfind/:materialName', async (req, res) => {
+router.get('/materialfind/:materialName', checkAuth, async (req, res) => {
   try {
     const material = await Material.findOne({
       materialName: req.params.materialName,
@@ -86,7 +87,7 @@ router.get('/materialfind/:materialName', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:materialId', (req, res, next) => {
+router.use('/:materialId', checkAuth, (req, res, next) => {
   try {
     Material.findById(req.params.materialId, (err, material) => {
       if (err) {
@@ -127,7 +128,7 @@ router.put('/:materialId', (req, res) => {
 });*/
 
 //PATCH
-router.patch('/:materialId', (req, res) => {
+router.patch('/:materialId', checkAuth, (req, res) => {
   try {
     const { material } = req;
     if (req.body._id) {
@@ -155,14 +156,24 @@ router.patch('/:materialId', (req, res) => {
 
 //DELETE
 
-router.delete('/:materialId', (req, res) => {
+router.delete('/:materialId', checkAuth, async (req, res) => {
   try {
-    req.material.remove((err) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.sendStatus(204);
+    const material = await MaterialAllocation.find({
+      materialName: req.material._id
     });
+
+    if(material.length === 0){
+      req.material.remove((err) => {
+        if (err) {
+          return res.send(err);
+        }
+        return res.sendStatus(204);
+      });
+    }
+    else{
+      return res.json({msg: 'Material cannot be deleted'})
+    }
+    
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

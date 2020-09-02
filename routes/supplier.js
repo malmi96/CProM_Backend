@@ -60,7 +60,7 @@ router.post(
 
 //GET api/supplier/get
 //Desc View supplier info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const suppliers = await Supplier.find().sort({ _id: -1 });
     if (!suppliers) {
@@ -76,7 +76,7 @@ router.get('/get', async (req, res) => {
 // GET api/supplier/:supplierId
 // Desc Get supplier by ID
 
-router.get('/:supplierId', async (req, res) => {
+router.get('/:supplierId', checkAuth, async (req, res) => {
   try {
     const supplier = await Supplier.findById({
       _id: req.params.supplierId,
@@ -92,7 +92,7 @@ router.get('/:supplierId', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:supplierId', (req, res, next) => {
+router.use('/:supplierId', checkAuth, (req, res, next) => {
   try {
     Supplier.findById(req.params.supplierId, (err, supplier) => {
       if (err) {
@@ -111,7 +111,7 @@ router.use('/:supplierId', (req, res, next) => {
 });
 
 //PATCH
-router.patch('/:supplierId', (req, res) => {
+router.patch('/:supplierId', checkAuth, (req, res) => {
   try {
     const { supplier } = req;
     if (req.body._id) {
@@ -136,7 +136,7 @@ router.patch('/:supplierId', (req, res) => {
 
 //DELETE
 
-router.delete('/:supplierId', (req, res) => {
+router.delete('/:supplierId', checkAuth, (req, res) => {
   try {
     req.supplier.remove((err) => {
       if (err) {

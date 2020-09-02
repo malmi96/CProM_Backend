@@ -4,6 +4,7 @@ const Image = require('../models/image');
 const Project = require('../models/project');
 const Stage = require('../models/stage');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 const MIME_TYPE_MAP = {
@@ -34,6 +35,7 @@ const storage = multer.diskStorage({
 router.post(
   '/add',
   multer({ storage: storage }).single('image'),
+  checkAuth,
   async (req, res) => {
     const url = req.protocol + '://' + req.get('host');
     const { imageName, projectName, stageName } = req.body;
@@ -68,7 +70,7 @@ router.post(
 //POST /api/image/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -86,7 +88,7 @@ router.post('/add/projectName', async (req, res) => {
 //POST /api/image/add/stageName
 //Desc Searching stageName
 
-router.post('/add/stageName', async (req, res) => {
+router.post('/add/stageName', checkAuth, async (req, res) => {
   try {
     const stage = await Stage.findOne({
       stageName: req.body.stageName,
@@ -103,7 +105,7 @@ router.post('/add/stageName', async (req, res) => {
 
 //GET api/image/get
 //Desc View image info
-router.get('/get', (req, res) => {
+router.get('/get', checkAuth, (req, res) => {
   try {
     Image.find((err, image) => {
       if (err) {
@@ -117,7 +119,7 @@ router.get('/get', (req, res) => {
   }
 });
 
-router.get('/get/:projectId/:stageId', async (req, res) => {
+router.get('/get/:projectId/:stageId', checkAuth, async (req, res) => {
   try {
     const image = await Image.find({
       stageName: req.params.stageId,
@@ -132,7 +134,7 @@ router.get('/get/:projectId/:stageId', async (req, res) => {
   }
 });
 
-router.post('/stageName', async (req, res) => {
+router.post('/stageName', checkAuth, async (req, res) => {
   try {
     console.log(req.body);
     const stage = await Stage.findOne({
@@ -152,7 +154,7 @@ router.post('/stageName', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:imageId', (req, res, next) => {
+router.use('/:imageId', checkAuth, (req, res, next) => {
   try {
     Image.findById(req.params.imageId, (err, image) => {
       if (err) {
@@ -171,7 +173,7 @@ router.use('/:imageId', (req, res, next) => {
 });
 
 //PATCH
-router.patch('/:imageId', (req, res) => {
+router.patch('/:imageId', checkAuth, (req, res) => {
   try {
     const { image } = req;
     if (req.body._id) {
@@ -196,7 +198,7 @@ router.patch('/:imageId', (req, res) => {
 
 //DELETE
 
-router.delete('/:imageId', (req, res) => {
+router.delete('/:imageId', checkAuth, (req, res) => {
   try {
     req.image.remove((err) => {
       if (err) {

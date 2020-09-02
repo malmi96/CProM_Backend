@@ -6,7 +6,7 @@ const router = express.Router();
 
 //POST api/machineryType/add
 //Desc Add machinery details
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const { machineryType } = req.body;
   try {
     //To check whether the machineryName exists
@@ -33,7 +33,7 @@ router.post('/add', async (req, res) => {
 
 //GET api/machineryType/get
 //Desc View machinery types
-router.get('/get', (req, res) => {
+router.get('/get', checkAuth, (req, res) => {
   try {
     MachineryType.find((err, machinery) => {
       if (err) {
@@ -49,7 +49,7 @@ router.get('/get', (req, res) => {
 
 //DELETE
 
-router.delete('/:machineryTypeId', async (req, res) => {
+router.delete('/:machineryTypeId', checkAuth, async (req, res) => {
   try {
     const machineryType = await MachineryType.findById({
       _id: req.params.machineryTypeId,

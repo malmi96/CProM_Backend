@@ -17,6 +17,7 @@ router.post('/add', async (req, res) => {
       contactNo: contactNo,
       message: message,
       date: Date.now(),
+      status: 'New'
     });
     await inquiry.save();
     const salesManager = await Employee.find({
@@ -56,6 +57,44 @@ router.get('/get', async (req, res) => {
   try {
     const inquiry = await Inquiry.find();
     return res.status(200).json(inquiry);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.patch('/status/:id', async (req, res) => {
+  try {
+    console.log(req.body)
+    const inquiry = await Inquiry.findById({
+      _id: req.params.id,
+    });
+    Object.entries(req.body).forEach((item) => {
+      const key = item[0];
+      const value = item[1];
+      inquiry[key] = value;
+    });
+    await inquiry.save();
+    
+    return res.json(inquiry);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const inquiry = await Inquiry.findById({
+      _id: req.params.id
+    })
+    inquiry.remove((err) => {
+      if (err) {
+        return res.send(err);
+      }
+      return res.sendStatus(204);
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');

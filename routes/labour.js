@@ -2,11 +2,12 @@ const express = require('express');
 const Labour = require('../models/labour');
 
 const router = express.Router();
+const checkAuth = require('../middleware/check-auth');
 const { check, validationResult } = require('express-validator');
 
 //POST api/labour/add
 //Desc Add labour details
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     labourCategory,
     labourType,
@@ -46,7 +47,7 @@ router.post('/add', async (req, res) => {
 
 //GET api/labour/get
 //Desc View labour info
-router.get('/get', (req, res) => {
+router.get('/get', checkAuth, (req, res) => {
   try {
     Labour.find((err, labour) => {
       if (err) {
@@ -62,7 +63,7 @@ router.get('/get', (req, res) => {
 
 //Get api/labour/:labourId
 //Desc Get user by ID
-router.get('/:labourId', async (req, res) => {
+router.get('/:labourId', checkAuth, async (req, res) => {
   try {
     Labour.findById(req.params.labourId, (err, labour) => {
       if (err) {
@@ -79,7 +80,7 @@ router.get('/:labourId', async (req, res) => {
 
 //Get api/labour/view/:labourName
 //Desc Get labour from labour Name
-router.get('/view/:labourName', async (req, res) => {
+router.get('/view/:labourName', checkAuth, async (req, res) => {
   try {
     const labour = await Labour.find({
       labourName: req.params.labourName,
@@ -92,7 +93,7 @@ router.get('/view/:labourName', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:labourId', (req, res, next) => {
+router.use('/:labourId', checkAuth, (req, res, next) => {
   try {
     Labour.findById(req.params.labourId, (err, labour) => {
       if (err) {
@@ -111,7 +112,7 @@ router.use('/:labourId', (req, res, next) => {
 });
 
 //PATCH
-router.patch('/:labourId', (req, res) => {
+router.patch('/:labourId', checkAuth, (req, res) => {
   try {
     const { labour } = req;
     if (req.body._id) {
@@ -136,7 +137,7 @@ router.patch('/:labourId', (req, res) => {
 
 //DELETE
 
-router.delete('/:labourId', (req, res) => {
+router.delete('/:labourId', checkAuth, (req, res) => {
   try {
     req.labour.remove((err) => {
       if (err) {

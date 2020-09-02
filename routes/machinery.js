@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 
 //POST api/machinery/add
 //Desc Add machinery details
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const { machineryName, machineryType, machineryCondition, date } = req.body;
   try {
     let machineryTypeCheck = await MachineryType.findOne({
@@ -42,7 +42,7 @@ router.post('/add', async (req, res) => {
 
 //GET api/machinery/get
 //Desc View machinery info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const machinery = await Machinery.find().populate('machineryType', [
       'machineryType',
@@ -57,7 +57,7 @@ router.get('/get', async (req, res) => {
 //GET api/machinery/machineryID
 //Desc View machinery by ID
 
-router.get('/:machineryId', async (req, res) => {
+router.get('/:machineryId', checkAuth, async (req, res) => {
   try {
     const machinery = await Machinery.findById({
       _id: req.params.machineryId,
@@ -73,7 +73,7 @@ router.get('/:machineryId', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:machineryId', (req, res, next) => {
+router.use('/:machineryId', checkAuth, (req, res, next) => {
   try {
     Machinery.findById(req.params.machineryId, (err, machinery) => {
       if (err) {
@@ -91,7 +91,7 @@ router.use('/:machineryId', (req, res, next) => {
   }
 });
 
-router.put('/:machineryId', async (req, res) => {
+router.put('/:machineryId', checkAuth, async (req, res) => {
   try {
     const { machinery } = req;
     const machineryType = await MachineryType.findOne({
@@ -130,7 +130,7 @@ router.put('/:machineryId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:machineryId', (req, res) => {
+router.patch('/:machineryId', checkAuth, (req, res) => {
   try {
     const { machinery } = req;
     if (req.body._id) {
@@ -155,7 +155,7 @@ router.patch('/:machineryId', (req, res) => {
 
 //DELETE
 
-router.delete('/:machineryId', (req, res) => {
+router.delete('/:machineryId', checkAuth, (req, res) => {
   try {
     req.machinery.remove((err) => {
       if (err) {

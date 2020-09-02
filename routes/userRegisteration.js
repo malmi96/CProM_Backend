@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Customer = require('../models/customer');
 const Employee = require('../models/employee');
+const Project = require('../models/project');
 const checkAuth = require('../middleware/check-auth');
 
 const router = express.Router();
@@ -19,12 +20,11 @@ router.post('/login', async (req, res) => {
         email,
       });
       if (!user) {
-        return res.status(401).json({ errors: [{ msg: 'Auth failed' }] });
+        return res.json({ errors: [{ msg: 'Auth failed' }] });
       }
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res
-          .status(400)
           .json({ errors: [{ msg: 'Invalid Credentials' }] });
       }
       const payLoad = {
@@ -150,7 +150,7 @@ router.post(
 
 //GET api/users/customer/get
 //Desc View customer info
-router.get('/customer/get', (req, res) => {
+router.get('/customer/get', checkAuth, (req, res) => {
   try {
     Customer.find((err, customers) => {
       if (err) {
@@ -166,7 +166,7 @@ router.get('/customer/get', (req, res) => {
 
 //Get api/users/customer/:customerId
 //Desc Get user by ID
-router.get('/customer/:customerId', async (req, res) => {
+router.get('/customer/:customerId', checkAuth, async (req, res) => {
   try {
     Customer.findById(req.params.customerId, (err, customer) => {
       if (err) {
@@ -182,7 +182,7 @@ router.get('/customer/:customerId', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/customer/:customerId', (req, res, next) => {
+router.use('/customer/:customerId', checkAuth, (req, res, next) => {
   try {
     Customer.findById(req.params.customerId, (err, customer) => {
       if (err) {
@@ -202,7 +202,7 @@ router.use('/customer/:customerId', (req, res, next) => {
 
 //PUT api/users/customer/:customerId
 //Desc Update customer details
-router.put('/customer/:customerId', (req, res) => {
+router.put('/customer/:customerId', checkAuth, (req, res) => {
   try {
     const { customer } = req;
     customer.customerName = req.body.customerName;
@@ -224,8 +224,7 @@ router.put('/customer/:customerId', (req, res) => {
 });
 
 //PATCH
-//PATCH
-router.patch('/customer/:customerId', (req, res) => {
+router.patch('/customer/:customerId', checkAuth, (req, res) => {
   try {
     const { customer } = req;
     if (req.body._id) {
@@ -260,14 +259,25 @@ router.patch('/customer/:customerId', (req, res) => {
 
 //DELETE
 
-router.delete('/customer/:customerId', (req, res) => {
+router.delete('/customer/:customerId', checkAuth, async (req, res) => {
   try {
-    req.customer.remove((err) => {
-      if (err) {
-        return res.send(err);
-      }
-      return res.sendStatus(204);
-    });
+    
+    const project = await Project.find({
+      projectOwner: req.customer._id
+    })
+    console.log(project);
+    if (project.length === 0){
+      req.customer.remove((err) => {
+        if (err) {
+          return res.send(err);
+        }
+        return res.sendStatus(204);
+      });
+    }
+    else {
+      return res.json({msg: 'Cannot delete'})
+    }
+    
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Server Error');
@@ -337,7 +347,7 @@ router.post(
 
 //GET api/users/employee/get
 //Desc View employee info
-router.get('/employee/get', (req, res) => {
+router.get('/employee/get', checkAuth, (req, res) => {
   try {
     Employee.find((err, employee) => {
       if (err) {
@@ -352,7 +362,7 @@ router.get('/employee/get', (req, res) => {
 });
 //Get api/users/employee/:employeeId
 //Desc Get user by ID
-router.get('/employee/:employeeId', async (req, res) => {
+router.get('/employee/:employeeId', checkAuth, async (req, res) => {
   try {
     Employee.findById(req.params.employeeId, (err, employee) => {
       if (err) {
@@ -368,7 +378,7 @@ router.get('/employee/:employeeId', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/employee/:employeeId', (req, res, next) => {
+router.use('/employee/:employeeId', checkAuth, (req, res, next) => {
   try {
     Employee.findById(req.params.employeeId, (err, employee) => {
       if (err) {
@@ -388,7 +398,7 @@ router.use('/employee/:employeeId', (req, res, next) => {
 
 //PUT api/users/employee/:employeeId
 //Desc Update employee details
-router.put('/employee/:employeeId', (req, res) => {
+router.put('/employee/:employeeId', checkAuth, (req, res) => {
   try {
     const { employee } = req;
     employee.employeeName = req.body.employeeName;
@@ -411,7 +421,7 @@ router.put('/employee/:employeeId', (req, res) => {
 });
 
 //PATCH
-router.patch('/employee/:employeeId', (req, res) => {
+router.patch('/employee/:employeeId', checkAuth, (req, res) => {
   try {
     const { employee } = req;
     if (req.body._id) {
@@ -446,7 +456,7 @@ router.patch('/employee/:employeeId', (req, res) => {
 
 //DELETE
 
-router.delete('/employee/:employeeId', (req, res) => {
+router.delete('/employee/:employeeId', checkAuth, (req, res) => {
   try {
     req.employee.remove((err) => {
       if (err) {

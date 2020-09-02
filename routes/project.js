@@ -3,13 +3,14 @@ const Customer = require('../models/customer');
 const Project = require('../models/project');
 const Stage = require('../models/stage');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const customer = require('../models/customer');
 
 //POST api/project/add
 //Desc Add new project
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     projectName,
     projectLocation,
@@ -55,7 +56,7 @@ router.post('/add', async (req, res) => {
 //POST /api/project/add/customerSearch
 //Desc Searching customer with relavent nic
 
-router.post('/add/customerSearch', async (req, res) => {
+router.post('/add/customerSearch', checkAuth, async (req, res) => {
   try {
     const owner = await Customer.findOne({
       nic: req.body.nic,
@@ -72,7 +73,7 @@ router.post('/add/customerSearch', async (req, res) => {
 
 //GET api/project/get
 //Desc View project info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const project = await Project.find()
       .populate('projectOwner', ['customerName'])
@@ -90,7 +91,7 @@ router.get('/get', async (req, res) => {
 // GET api/project/:projectId
 // Desc Get project by ID
 
-router.get('/:projectId', async (req, res) => {
+router.get('/:projectId', checkAuth, async (req, res) => {
   try {
     const project = await Project.findById({
       _id: req.params.projectId,
@@ -108,7 +109,7 @@ router.get('/:projectId', async (req, res) => {
 // GET api/project/view/:projectName
 // Desc Get Customer Name from project Name
 
-router.get('/view/:projectName', async (req, res) => {
+router.get('/view/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -126,7 +127,7 @@ router.get('/view/:projectName', async (req, res) => {
 // GET api/project/customer/:customerId
 // Desc Get Project from customer Id
 
-router.get('/customer/:id', async (req, res) => {
+router.get('/customer/:id', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectOwner: req.params.id,
@@ -145,7 +146,7 @@ router.get('/customer/:id', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:projectId', (req, res, next) => {
+router.use('/:projectId', checkAuth, (req, res, next) => {
   try {
     Project.findById(req.params.projectId, (err, project) => {
       if (err) {
@@ -163,7 +164,7 @@ router.use('/:projectId', (req, res, next) => {
   }
 });
 
-router.put('/:projectId', (req, res) => {
+router.put('/:projectId', checkAuth, (req, res) => {
   try {
     const { project } = req;
     if (req.body.customerName != null) {
@@ -194,7 +195,7 @@ router.put('/:projectId', (req, res) => {
 });
 
 //PATCH
-router.patch('/:projectId', (req, res) => {
+router.patch('/:projectId', checkAuth, (req, res) => {
   try {
     const { project } = req;
     if (req.body._id) {
@@ -228,7 +229,7 @@ router.patch('/:projectId', (req, res) => {
 
 //DELETE
 
-router.delete('/:projectId', (req, res) => {
+router.delete('/:projectId', checkAuth, (req, res) => {
   try {
     req.project.remove((err) => {
       if (err) {

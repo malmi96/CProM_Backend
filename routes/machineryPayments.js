@@ -6,10 +6,11 @@ const Supplier = require('../models/supplier');
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const checkAuth = require('../middleware/check-auth');
 
 //POST api/machineryPayments
 //Desc add machinery Payments
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     machineryName,
     supplierName,
@@ -47,7 +48,7 @@ router.post('/add', async (req, res) => {
 //POST /api/machineryPayments/add/machineryName
 //Desc Searching machineryName
 
-router.post('/add/machineryName', async (req, res) => {
+router.post('/add/machineryName', checkAuth, async (req, res) => {
   try {
     const machinery = await Machinery.findOne({
       machineryName: req.body.machineryName,
@@ -65,7 +66,7 @@ router.post('/add/machineryName', async (req, res) => {
 //POST /api/machineryPayments/add/supplierName
 //Desc Searching supplierName
 
-router.post('/add/supplierName', async (req, res) => {
+router.post('/add/supplierName', checkAuth, async (req, res) => {
   try {
     const supplier = await Supplier.findOne({
       supplierName: req.body.supplierName,
@@ -82,7 +83,7 @@ router.post('/add/supplierName', async (req, res) => {
 
 //GET api/machineryPayments/get
 //Desc View machineryPayments info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const machineryPayment = await MachineryPayment.find()
       .populate('machineryName', ['machineryName'])
@@ -101,7 +102,7 @@ router.get('/get', async (req, res) => {
 // GET api/machineryPayments/get/:id
 // Desc Get machinery payment by ID
 
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', checkAuth, async (req, res) => {
   try {
     const machineryPayment = await MachineryPayment.findById({
       _id: req.params.id,
@@ -121,7 +122,7 @@ router.get('/get/:id', async (req, res) => {
 // GET api/machineryPayments/dailyExpenses/:date
 // Desc Get machinery payment by DATE
 
-router.post('/dailyExpenses', async (req, res) => {
+router.post('/dailyExpenses', checkAuth, async (req, res) => {
   try {
     const date = new Date(req.body.date);
     const payment = await MachineryPayment.find({
@@ -139,7 +140,7 @@ router.post('/dailyExpenses', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:machineryPaymentsId', (req, res, next) => {
+router.use('/:machineryPaymentsId', checkAuth, (req, res, next) => {
   try {
     MachineryPayment.findById(
       req.params.machineryPaymentsId,
@@ -161,7 +162,7 @@ router.use('/:machineryPaymentsId', (req, res, next) => {
 });
 
 //PUT
-router.put('/:machineryPaymentsId', async (req, res) => {
+router.put('/:machineryPaymentsId', checkAuth, async (req, res) => {
   try {
     const { machineryPayments } = req;
     const machinery = await Machinery.findOne({
@@ -189,7 +190,7 @@ router.put('/:machineryPaymentsId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:machineryPaymentsId', (req, res) => {
+router.patch('/:machineryPaymentsId', checkAuth, (req, res) => {
   try {
     const { machineryPayments } = req;
     if (req.body._id) {
@@ -214,7 +215,7 @@ router.patch('/:machineryPaymentsId', (req, res) => {
 
 //DELETE
 
-router.delete('/:machineryPaymentsId', (req, res) => {
+router.delete('/:machineryPaymentsId', checkAuth, (req, res) => {
   try {
     req.machineryPayments.remove((err) => {
       if (err) {

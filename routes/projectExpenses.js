@@ -8,11 +8,12 @@ const Project = require('../models/project');
 const Stage = require('../models/stage');
 const Supplier = require('../models/supplier');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 // Desc Get payments by the project name
 
-router.post('/get', async (req, res) => {
+router.post('/get', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,

@@ -5,13 +5,14 @@ const Labour = require('../models/labour');
 const Task = require('../models/tasks');
 const StageProgress = require('../models/stageProgress');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const tasks = require('../models/tasks');
 
 //POST api/stage/add
 //Desc Add new stage
-router.post('/add', async (req, res) => {
+router.post('/add', checkAuth, async (req, res) => {
   const {
     stageName,
     stageSupervisor,
@@ -63,7 +64,7 @@ router.post('/add', async (req, res) => {
 //POST /api/stage/add/projectName
 //Desc Searching projectName
 
-router.post('/add/projectName', async (req, res) => {
+router.post('/add/projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.body.projectName,
@@ -81,7 +82,7 @@ router.post('/add/projectName', async (req, res) => {
 //POST /api/stage/add/stageSupervisor
 //Desc Searching stageSupervisor
 
-router.post('/add/stageSupervisor', async (req, res) => {
+router.post('/add/stageSupervisor', checkAuth, async (req, res) => {
   try {
     const supervisor = await Labour.findOne({
       labourNIC: req.body.labourNIC,
@@ -98,7 +99,7 @@ router.post('/add/stageSupervisor', async (req, res) => {
 
 //GET api/stage/get
 //Desc View stage info
-router.get('/get', async (req, res) => {
+router.get('/get', checkAuth, async (req, res) => {
   try {
     const stage = await Stage.find()
       .populate('stageSupervisor', ['labourName'])
@@ -117,7 +118,7 @@ router.get('/get', async (req, res) => {
 //GET api/stage/projectID
 //Desc View stages of a given project
 
-router.get('/:projectId', async (req, res) => {
+router.get('/:projectId', checkAuth, async (req, res) => {
   try {
     const stages = await Stage.find({ projectName: req.params.projectId })
       .populate('stageSupervisor', ['labourName'])
@@ -136,7 +137,7 @@ router.get('/:projectId', async (req, res) => {
 //GET api/stage/view/projectName
 //Desc View stages of a given project
 
-router.get('/view/:projectName', async (req, res) => {
+router.get('/view/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -156,7 +157,7 @@ router.get('/view/:projectName', async (req, res) => {
 
 //Desc View stages of a given project for gantt chart
 
-router.get('/gantt/:projectName', async (req, res) => {
+router.get('/gantt/:projectName', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectName: req.params.projectName,
@@ -200,7 +201,7 @@ router.get('/gantt/:projectName', async (req, res) => {
 
 //GET api/stage/customer/id
 
-router.get('/customer/:id', async (req, res) => {
+router.get('/customer/:id', checkAuth, async (req, res) => {
   try {
     const project = await Project.findOne({
       projectOwner: req.params.id,
@@ -219,7 +220,7 @@ router.get('/customer/:id', async (req, res) => {
 });
 
 //Implementing middleware
-router.use('/:stageId', (req, res, next) => {
+router.use('/:stageId', checkAuth, (req, res, next) => {
   try {
     Stage.findById(req.params.stageId, (err, stage) => {
       if (err) {
@@ -237,7 +238,7 @@ router.use('/:stageId', (req, res, next) => {
   }
 });
 
-router.put('/:stageId', async (req, res) => {
+router.put('/:stageId', checkAuth, async (req, res) => {
   try {
     const { stage } = req;
     const project = await Project.findOne({
@@ -264,7 +265,7 @@ router.put('/:stageId', async (req, res) => {
 });
 
 //PATCH
-router.patch('/:stageId', (req, res) => {
+router.patch('/:stageId', checkAuth, (req, res) => {
   try {
     const { stage } = req;
     if (req.body._id) {
@@ -289,7 +290,7 @@ router.patch('/:stageId', (req, res) => {
 
 //DELETE
 
-router.delete('/:stageId', async (req, res) => {
+router.delete('/:stageId', checkAuth, async (req, res) => {
   try { 
     const stagePro = await StageProgress.findOne({
       stageName: req.stage._id

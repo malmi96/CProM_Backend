@@ -2,9 +2,11 @@ const express = require('express');
 
 const MaterialConsumption = require('../models/materialConsumption');
 const Materials = require('../models/material');
+
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
-router.get('/consumption', async (req, res)=>{
+router.get('/consumption', checkAuth, async (req, res)=>{
     try {
         const materials = await Materials.find();
         const materialConsumption = await MaterialConsumption.find().populate('materialName',['materialName']);
